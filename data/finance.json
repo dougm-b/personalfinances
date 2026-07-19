@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 186.47
+      "balance": 686.47
     },
     {
       "id": 2,
@@ -39,17 +39,6 @@
   ],
   "nextAccountId": 7,
   "transactions": [
-    {
-      "id": 1,
-      "desc": "Reforço Trading (Ações/ETFs)",
-      "kind": "transfer",
-      "date": "2026-07-19",
-      "amount": 500,
-      "fromRef": "acc:1",
-      "toRef": "inv:trading",
-      "category": null,
-      "accountId": null
-    },
     {
       "id": 2,
       "desc": "Salário Randstad",
@@ -239,7 +228,7 @@
     {
       "id": "trading",
       "name": "Trading (Ações/ETFs)",
-      "balance": 1436.86,
+      "balance": 936.86,
       "contributions": [
         {
           "date": "2026-07-19",
