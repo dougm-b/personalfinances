@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": -277.86
+      "balance": 518.06
     },
     {
       "id": 2,
@@ -49,9 +49,21 @@
       "toRef": "inv:trading",
       "category": null,
       "accountId": null
+    },
+    {
+      "id": 2,
+      "desc": "Salário Randstad",
+      "kind": "income",
+      "date": "2026-06-30",
+      "category": "Outros",
+      "accountId": 1,
+      "amount": 795.92,
+      "fromRef": null,
+      "toRef": null,
+      "applied": true
     }
   ],
-  "nextTxId": 2,
+  "nextTxId": 3,
   "recurringBills": [
     {
       "id": 1,
