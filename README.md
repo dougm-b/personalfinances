@@ -11,20 +11,27 @@ browser.
 - **Dashboard** — património líquido, receitas/despesas do mês, cartão de
   crédito, empréstimo da casa, despesas por categoria do mês, histórico
   mensal e próximas despesas fixas.
-- **Contas** — contas bancárias (saldo editável manualmente).
-- **Transações** — registo de receitas/despesas por categoria e conta.
+- **Contas** — contas bancárias com saldo a hoje; clicar numa conta mostra a
+  projeção do saldo ao longo do tempo, descontando/somando os movimentos
+  previstos dessa conta.
+- **Transações** — registo de receitas/despesas por categoria e conta, e
+  transferências entre contas/investimentos (ex: Millennium → Trading), que
+  atualizam os dois saldos automaticamente.
 - **Fixas** — despesas fixas mensais (renda, água, luz, seguros, ginásio...)
-  com botão para registar o pagamento do mês como transação.
-- **Cartão** — limite, valor utilizado/disponível e compras a crédito
-  (ex: financiamento de telemóvel), com criação/edição/eliminação de cada
-  compra financiada.
+  com botão para registar o pagamento do mês como transação; e movimentos
+  previstos (ex: ordenado a receber) com data de inserção automática
+  bloqueada + data de pagamento futura, editáveis até serem confirmados.
+- **Cartão** — WiZink, Millennium e ActivoBank: limite (opcional), valor
+  utilizado/disponível, valor "a pagar este mês" editável, e compras a
+  crédito com prestação mensal fixa configurável.
 - **Investir** — contas de investimento (Trading, PPR) com histórico de
   movimentos, e metas de poupança.
-- **Casa** — detalhe do financiamento do apartamento: fontes de
-  financiamento, empréstimo pessoal (Deny e Mauricio) com transferências e
-  plano de pagamento, comparação com financiamento bancário, e referência de
-  renda dos quartos. O botão "Registar pagamento" abate o valor no saldo em
-  dívida e cria automaticamente a transação correspondente.
+- **Casa** — detalhe do financiamento do apartamento e do empréstimo pessoal
+  (Deny e Mauricio): valor emprestado, transferências recebidas, e saldo em
+  dívida calculado a partir de débitos mensais configuráveis por período
+  (ex: 300 €/mês de Mar 2025 a Fev 2026, depois outro valor) com correção
+  manual sempre disponível. O botão "Registar pagamento" abate o valor no
+  saldo e cria automaticamente a transação correspondente.
 
 ## Dados iniciais
 

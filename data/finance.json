@@ -26,13 +26,18 @@
       "name": "WiZink",
       "limit": 3500,
       "used": 1472.08,
+      "monthlyDue": 0,
       "financedItems": [
-        { "id": 1, "desc": "iPhone (crédito)", "total": 1026.99, "remaining": 445.09 }
+        { "id": 1, "desc": "iPhone (crédito)", "total": 1026.99, "remaining": 445.09, "installment": null }
       ]
-    }
+    },
+    { "id": 2, "name": "Millennium bcp", "limit": 0, "used": 0, "monthlyDue": 0, "financedItems": [] },
+    { "id": 3, "name": "ActivoBank", "limit": 0, "used": 0, "monthlyDue": 0, "financedItems": [] }
   ],
-  "nextCardId": 2,
+  "nextCardId": 4,
   "nextFinancedId": 2,
+  "plannedTx": [],
+  "nextPlannedId": 1,
   "investments": [
     { "id": "trading", "name": "Trading (Ações/ETFs)", "balance": 0, "contributions": [] },
     {
@@ -52,30 +57,22 @@
     "apartmentValue": 172500,
     "entrada": 37500,
     "financiado": 135000,
-    "documentacao": 2300,
     "sinal": 17250,
-    "fundingSources": [
-      { "label": "Sinal", "value": 17250 },
-      { "label": "Poupança própria", "value": 32750 },
-      { "label": "Empréstimo de Deny e Mauricio", "value": 30757.19 },
-      { "label": "Contribuição dos pais", "value": 6300 }
-    ],
     "loan": {
       "credor": "Deny e Mauricio",
       "total": 30757.19,
-      "currentRemaining": 18157.19,
+      "baseRemaining": 30757.19,
+      "baseMonth": "2025-02",
+      "paymentPlans": [
+        { "id": 1, "amount": 300, "from": "2025-03", "to": "2026-02" }
+      ],
+      "nextPlanId": 2,
       "transfers": [
         { "date": "2024-11-12", "amount": 9604 },
         { "date": "2024-11-13", "amount": 4815 },
         { "date": "2024-11-14", "amount": 4835 },
         { "date": "2024-11-18", "amount": 9667.19 },
         { "date": "2024-11-21", "amount": 4836 }
-      ],
-      "schedule": [
-        { "year": 2025, "paid": 3600, "remaining": 27157.19 },
-        { "year": 2026, "paid": 9000, "remaining": 18157.19 },
-        { "year": 2027, "paid": 12600, "remaining": 5557.19 },
-        { "year": 2028, "paid": 5400, "remaining": 157.19 }
       ]
     },
     "bankComparison": {
