@@ -82,6 +82,11 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 .hero-sub{font-size:12px;color:var(--txt3);margin-top:8px;display:flex;justify-content:center;gap:16px}
 .hero-sub b{color:var(--txt2)}
 
+.sim-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px}
+.sim-btn{background:var(--g3);border:1px solid var(--g4);color:var(--txt2);border-radius:50%;
+  width:30px;height:30px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sim-label{font-weight:700;font-size:13px;min-width:110px;text-align:center}
+
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat-box{background:var(--g2);border:1px solid var(--card-b);border-radius:var(--r2);padding:12px}
 .stat-box .l{font-size:11px;color:var(--txt3);margin-bottom:4px}
@@ -234,12 +239,18 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <!-- ══════════ DASHBOARD ══════════ -->
     <div class="screen active" id="dash-screen">
       <div class="card hero">
-        <div class="hero-lbl">Património líquido</div>
+        <div class="hero-lbl" id="d-net-lbl">Património líquido</div>
         <div class="hero-val" id="d-networth">€0</div>
         <div class="hero-sub">
-          <span>Ativos <b id="d-assets">€0</b></span>
-          <span>Dívidas <b id="d-debts">€0</b></span>
+          <span>Investido <b id="d-invest">€0</b></span>
+          <span>À ordem <b id="d-ordem">€0</b></span>
         </div>
+        <div class="sim-nav">
+          <button class="sim-btn" onclick="dashShift(-1)">‹</button>
+          <span class="sim-label" id="d-sim-label">Hoje</span>
+          <button class="sim-btn" onclick="dashShift(1)">›</button>
+        </div>
+        <div class="row-detail" id="d-sim-note" style="display:none;margin-top:8px;text-align:left"></div>
       </div>
 
       <div class="stat-grid" style="margin-bottom:12px">
@@ -340,7 +351,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <div class="note-box">O saldo em dívida desconta automaticamente o débito mensal de cada período configurado (ex: 300 €/mês de Mar 2025 a Fev 2026). Podes corrigir o saldo manualmente a qualquer momento — a partir daí os débitos seguintes descontam sobre o valor corrigido.</div>
       </div>
       <div class="card">
-        <div class="card-title">Transferências Recebidas</div>
+        <div class="card-title">Recebido de Deny e Mauricio</div>
         <div id="house-transfers"></div>
       </div>
       <div class="card">
@@ -348,8 +359,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <div id="house-bank-comparison"></div>
       </div>
       <div class="card">
-        <div class="card-title">Renda de Quartos (referência)</div>
+        <div class="card-title">Renda de Quartos <button class="add-btn" onclick="openRoomModal()">+ Quarto</button></div>
         <div id="house-rooms"></div>
+        <div class="note-box">Toca num quarto para editar o nome/renda e registar ajustes pontuais num mês (ex: inquilino pagou dois meses juntos, ou não pagou este mês).</div>
       </div>
     </div>
 
@@ -442,6 +454,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">Dia de vencimento</label><input class="form-input" id="bill-day" type="number" min="1" max="31" placeholder="1-31"/></div>
     </div>
     <div class="form-group"><label class="form-label">Categoria</label><select class="form-select" id="bill-category"></select></div>
+    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="bill-account"></select></div>
     <button class="btn-primary" onclick="saveBill()">Guardar</button>
     <button class="btn-secondary" onclick="registerBillPayment()">Registar pagamento este mês →</button>
     <button class="btn-danger" id="bill-delete-btn" onclick="deleteBill()" style="display:none">Eliminar</button>
@@ -468,8 +481,10 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <h3>Novo Movimento <button class="modal-close" onclick="closeModal('invest-modal')">✕</button></h3>
     <input type="hidden" id="invest-id"/>
     <div class="form-group"><label class="form-label">Valor (€) — negativo para levantamento</label><input class="form-input" id="invest-amount" type="number" step="0.01"/></div>
+    <div class="form-group"><label class="form-label">Conta de origem/destino</label><select class="form-select" id="invest-account"></select></div>
     <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="invest-note" placeholder="Ex: reforço mensal"/></div>
     <button class="btn-primary" onclick="saveInvestContribution()">Adicionar</button>
+    <div class="note-box">Cria uma transferência em Transações e move o valor entre a conta bancária e o investimento.</div>
   </div>
 </div>
 
@@ -500,8 +515,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <h3>Registar Pagamento do Empréstimo <button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></h3>
     <div class="form-group"><label class="form-label">Valor pago (€)</label><input class="form-input" id="loan-pay-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
     <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="loan-pay-date" type="date"/></div>
+    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="loan-pay-account"></select></div>
     <button class="btn-primary" onclick="saveLoanPayment()">Registar pagamento</button>
-    <div class="note-box">Abate o valor no saldo em dívida e cria a transação correspondente (categoria Casa).</div>
+    <div class="note-box">Abate o valor no saldo em dívida, cria a transação (categoria Casa) e debita a conta escolhida.</div>
   </div>
 </div>
 
@@ -561,6 +577,42 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <h3><span id="acc-detail-title">Conta</span><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></h3>
     <div id="acc-detail-body"></div>
     <button class="btn-secondary" id="acc-detail-edit">✎ Editar conta</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="room-modal">
+  <div class="modal">
+    <h3><span id="room-modal-title">Novo Quarto</span><button class="modal-close" onclick="closeModal('room-modal')">✕</button></h3>
+    <input type="hidden" id="room-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="room-name" placeholder="Quarto 1"/></div>
+      <div class="form-group"><label class="form-label">Renda mensal (€)</label><input class="form-input" id="room-rent" type="number" step="0.01"/></div>
+    </div>
+    <div id="room-adjustments"></div>
+    <button class="btn-primary" onclick="saveRoom()">Guardar</button>
+    <button class="btn-secondary" id="room-add-adj" onclick="openRoomAdjModal()" style="display:none">± Ajuste pontual num mês</button>
+    <button class="btn-danger" id="room-delete-btn" onclick="deleteRoom()" style="display:none">Eliminar quarto</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="room-adj-modal">
+  <div class="modal">
+    <h3><span id="adj-modal-title">Ajuste Pontual</span><button class="modal-close" onclick="closeModal('room-adj-modal')">✕</button></h3>
+    <input type="hidden" id="adj-room-id"/><input type="hidden" id="adj-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Mês</label><input class="form-input" id="adj-month" type="month"/></div>
+      <div class="form-group"><label class="form-label">Valor (€, pode ser negativo)</label><input class="form-input" id="adj-amount" type="number" step="0.01" placeholder="Ex: 320 ou -320"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="adj-note" placeholder="Ex: pagou 2 meses juntos / não pagou este mês"/></div>
+    <button class="btn-primary" onclick="saveRoomAdj()">Guardar</button>
+    <button class="btn-danger" id="adj-delete-btn" onclick="deleteRoomAdj()" style="display:none">Eliminar ajuste</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loan-history-modal">
+  <div class="modal">
+    <h3>Empréstimo — Detalhe <button class="modal-close" onclick="closeModal('loan-history-modal')">✕</button></h3>
+    <div id="loan-history-body"></div>
   </div>
 </div>
 
@@ -634,10 +686,27 @@ function getEntity(ref){
   if (t === 'acc') return state.accounts.find(a => String(a.id) === id);
   return state.investments.find(i => String(i.id) === id);
 }
+function round2(n){ return Math.round(n*100)/100; }
 function applyTransfer(t, sign){
   const from = getEntity(t.fromRef), to = getEntity(t.toRef);
-  if (from) from.balance = (from.balance||0) - sign*Math.abs(t.amount);
-  if (to)   to.balance   = (to.balance||0)   + sign*Math.abs(t.amount);
+  if (from) from.balance = round2((from.balance||0) - sign*Math.abs(t.amount));
+  if (to)   to.balance   = round2((to.balance||0)   + sign*Math.abs(t.amount));
+}
+// aplica (sign=1) ou reverte (sign=-1) o efeito de uma receita/despesa no
+// saldo da conta associada — só usado em transações com applied:true
+function applyTxBalance(t, sign){
+  const a = state.accounts.find(x => x.id === t.accountId);
+  if (a) a.balance = round2((a.balance||0) + sign*(t.amount||0));
+}
+function addMonthsKey(m, n){
+  let x = m;
+  for (let i = 0; i < n; i++) x = nextMonth(x);
+  return x;
+}
+function fillAccountSelect(el, selectedId){
+  el.innerHTML = state.accounts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  const def = state.accounts.find(a => a.type === 'À ordem');
+  el.value = selectedId != null ? selectedId : (def ? def.id : (state.accounts[0] && state.accounts[0].id));
 }
 
 // ══════════════════════════════════════════
@@ -705,16 +774,21 @@ function defaultState(){
           {date:'2024-11-14', amount:4835},
           {date:'2024-11-18', amount:9667.19},
           {date:'2024-11-21', amount:4836},
+          {date:'2024-11-21', amount:-3000, label:'Dinheiro do Douglas (descontado do empréstimo)'},
         ]
       },
       bankComparison:{
         variable:{avgMonthly:296.25, total120:35550},
         fixed:{avgMonthly:295.03, total120:35403.6}
       },
-      roomRental:[
-        {rooms:4, price:320, costPerPerson:52.5},
-        {rooms:5, price:300, costPerPerson:50}
-      ]
+      rooms:[
+        {id:1, name:'Quarto 1', rent:320, adjustments:[]},
+        {id:2, name:'Quarto 2', rent:320, adjustments:[]},
+        {id:3, name:'Quarto 3', rent:320, adjustments:[]},
+        {id:4, name:'Quarto 4', rent:320, adjustments:[]},
+      ],
+      nextRoomId:5,
+      nextRoomAdjId:1
     },
     settings:{ currency:'EUR' }
   };
@@ -746,6 +820,10 @@ function migrateState(loaded){
   }
   delete ln.currentRemaining;
   delete ln.schedule;
+  if (!s.house.rooms || !s.house.rooms.length) s.house.rooms = base.house.rooms;
+  if (!s.house.nextRoomId) s.house.nextRoomId = base.house.nextRoomId;
+  if (!s.house.nextRoomAdjId) s.house.nextRoomAdjId = base.house.nextRoomAdjId;
+  delete s.house.roomRental;
   s.creditCards.forEach(c => { if (c.monthlyDue == null) c.monthlyDue = 0; });
   s.settings = Object.assign({}, base.settings, loaded.settings || {});
   return s;
@@ -955,16 +1033,39 @@ function monthTx(kind){
 // ══════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════
+let dashOffset = 0; // meses no futuro para a simulação do património
+function dashShift(d){ dashOffset = Math.max(0, dashOffset + d); updateDash(); }
+
 function updateDash(){
-  const assets = totalAccounts() + totalInvestments();
-  const debts = totalCardDebt() + computeLoanRemaining();
-  const net = assets - debts;
+  // património = total investido + contas à ordem
+  const invTotal = totalInvestments();
+  const ordemTotal = state.accounts.filter(a => a.type === 'À ordem').reduce((s,a) => s + (a.balance||0), 0);
+  const mIncome = monthTx('income');
+  const mExpense = monthTx('expense'); // negativo
+  let net = invTotal + ordemTotal;
+  const noteEl = document.getElementById('d-sim-note');
+  if (dashOffset > 0) {
+    const targetM = addMonthsKey(todayKey().slice(0,7), dashOffset);
+    // receitas/despesas do mês atual mantidas + movimentos previstos até lá
+    const plannedSum = state.plannedTx
+      .filter(p => p.dueDate > todayKey() && p.dueDate <= targetM + '-31')
+      .reduce((s,p) => s + p.amount, 0);
+    net += dashOffset * (mIncome + mExpense) + plannedSum;
+    document.getElementById('d-net-lbl').textContent = 'Património previsto';
+    document.getElementById('d-sim-label').textContent = fmtMonth(targetM);
+    noteEl.style.display = '';
+    noteEl.textContent = `Simulação: assume que as receitas (${fmtEUR(mIncome)}/mês) e despesas (${fmtEUR(Math.abs(mExpense))}/mês) do mês atual se mantêm, mais os movimentos previstos até ${fmtMonth(targetM)}.`;
+  } else {
+    document.getElementById('d-net-lbl').textContent = 'Património líquido';
+    document.getElementById('d-sim-label').textContent = 'Hoje';
+    noteEl.style.display = 'none';
+  }
   document.getElementById('d-networth').textContent = fmtEUR(net);
   document.getElementById('d-networth').style.color = net >= 0 ? 'var(--txt)' : 'var(--red)';
-  document.getElementById('d-assets').textContent = fmtEUR(assets);
-  document.getElementById('d-debts').textContent = fmtEUR(debts);
-  document.getElementById('d-income').textContent = fmtEUR(monthTx('income'));
-  document.getElementById('d-expense').textContent = fmtEUR(monthTx('expense'));
+  document.getElementById('d-invest').textContent = fmtEUR(invTotal);
+  document.getElementById('d-ordem').textContent = fmtEUR(ordemTotal);
+  document.getElementById('d-income').textContent = fmtEUR(mIncome);
+  document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
 
   const cardsEl = document.getElementById('d-cards');
   cardsEl.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
@@ -1217,13 +1318,16 @@ function saveTx(){
     desc, kind, date: document.getElementById('tx-date').value,
     category: document.getElementById('tx-category').value,
     accountId, amount: kind==='income' ? Math.abs(amountAbs) : -Math.abs(amountAbs),
-    fromRef:null, toRef:null
+    fromRef:null, toRef:null, applied:true
   };
   if (old) {
     if (old.kind === 'transfer') applyTransfer(old, -1); // deixou de ser transferência
+    else if (old.applied) applyTxBalance(old, -1);       // reverter efeito anterior no saldo
     Object.assign(old, data);
+    applyTxBalance(old, 1);
   } else {
     state.transactions.push({ id: state.nextTxId++, ...data });
+    applyTxBalance(data, 1);
   }
   closeModal('tx-modal'); save(); showToast('✅ Transação guardada');
 }
@@ -1231,6 +1335,7 @@ function deleteTx(){
   const id = parseInt(document.getElementById('tx-id').value);
   const t = state.transactions.find(x=>x.id===id);
   if (t && t.kind === 'transfer') applyTransfer(t, -1);
+  else if (t && t.applied) applyTxBalance(t, -1);
   state.transactions = state.transactions.filter(x=>x.id!==id);
   closeModal('tx-modal'); save(); showToast('🗑️ Transação eliminada');
 }
@@ -1251,6 +1356,8 @@ function renderBills(){
 }
 function openBillModal(id){
   populateCategorySelect(document.getElementById('bill-category'), false);
+  const b0 = id ? state.recurringBills.find(x=>x.id===id) : null;
+  fillAccountSelect(document.getElementById('bill-account'), b0 ? b0.accountId : null);
   document.getElementById('bill-id').value = id||'';
   document.getElementById('bill-modal-title').textContent = id ? 'Editar Despesa Fixa' : 'Nova Despesa Fixa';
   document.getElementById('bill-delete-btn').style.display = id ? 'block' : 'none';
@@ -1274,7 +1381,9 @@ function saveBill(){
   const day = parseInt(document.getElementById('bill-day').value);
   if (!name || !day) { showToast('Preenche nome e dia'); return; }
   const amountVal = document.getElementById('bill-amount').value;
-  const data = { name, day, category: document.getElementById('bill-category').value, amount: amountVal==='' ? null : parseFloat(amountVal) };
+  const data = { name, day, category: document.getElementById('bill-category').value,
+    amount: amountVal==='' ? null : parseFloat(amountVal),
+    accountId: parseInt(document.getElementById('bill-account').value)||null };
   if (id) { Object.assign(state.recurringBills.find(b=>b.id==id), data); }
   else { state.recurringBills.push({ id: state.nextBillId++, ...data }); }
   closeModal('bill-modal'); save(); showToast('✅ Despesa fixa guardada');
@@ -1290,10 +1399,12 @@ function registerBillPayment(){
   if (!b) { showToast('Guarda a despesa fixa primeiro'); return; }
   const amt = b.amount!=null ? b.amount : parseFloat(document.getElementById('bill-amount').value) || 0;
   if (!amt) { showToast('Indica o valor deste mês'); return; }
-  const accountId = state.accounts[0] ? state.accounts[0].id : null;
-  state.transactions.push({ id: state.nextTxId++, desc: b.name, kind:'expense', amount:-Math.abs(amt),
-    date: todayKey(), category: b.category, accountId });
-  closeModal('bill-modal'); save(); showToast('✅ Pagamento registado em Transações');
+  const accountId = parseInt(document.getElementById('bill-account').value)||null;
+  const t = { id: state.nextTxId++, desc: b.name, kind:'expense', amount:-Math.abs(amt),
+    date: todayKey(), category: b.category, accountId, applied:true };
+  state.transactions.push(t);
+  applyTxBalance(t, 1); // debita a conta escolhida
+  closeModal('bill-modal'); save(); showToast('✅ Pagamento registado e debitado da conta');
 }
 
 // ══════════════════════════════════════════
@@ -1355,11 +1466,13 @@ function confirmPlanned(){
   const id = parseInt(document.getElementById('pl-id').value);
   const p = state.plannedTx.find(x=>x.id===id);
   if (!p) return;
-  state.transactions.push({ id: state.nextTxId++, desc: p.desc,
+  const t = { id: state.nextTxId++, desc: p.desc,
     kind: p.amount>=0 ? 'income' : 'expense', amount: p.amount,
-    date: p.dueDate, category: p.amount>=0 ? 'Salário' : 'Outros', accountId: p.accountId });
+    date: p.dueDate, category: p.amount>=0 ? 'Salário' : 'Outros', accountId: p.accountId, applied:true };
+  state.transactions.push(t);
+  applyTxBalance(t, 1); // reflete na conta associada
   state.plannedTx = state.plannedTx.filter(x=>x.id!==id);
-  closeModal('planned-modal'); save(); showToast('✅ Confirmado — movido para Transações');
+  closeModal('planned-modal'); save(); showToast('✅ Confirmado — movido para Transações e refletido na conta');
 }
 function deletePlanned(){
   const id = parseInt(document.getElementById('pl-id').value);
@@ -1499,6 +1612,7 @@ function renderInvest(){
 }
 function openInvestModal(id){
   activeInvestId = id;
+  fillAccountSelect(document.getElementById('invest-account'), null);
   document.getElementById('invest-amount').value = '';
   document.getElementById('invest-note').value = '';
   document.getElementById('invest-modal').classList.add('open');
@@ -1507,10 +1621,20 @@ function saveInvestContribution(){
   const inv = state.investments.find(i=>i.id===activeInvestId);
   const amount = parseFloat(document.getElementById('invest-amount').value);
   if (!amount) { showToast('Indica um valor'); return; }
+  const accId = parseInt(document.getElementById('invest-account').value);
+  const note = document.getElementById('invest-note').value.trim();
+  const accRef = 'acc:' + accId, invRef = 'inv:' + inv.id;
+  // reforço: conta → investimento; levantamento: investimento → conta
+  const t = { id: state.nextTxId++,
+    desc: (amount >= 0 ? 'Reforço ' : 'Levantamento ') + inv.name + (note ? ' — ' + note : ''),
+    kind:'transfer', date: todayKey(), amount: Math.abs(amount),
+    fromRef: amount >= 0 ? accRef : invRef, toRef: amount >= 0 ? invRef : accRef,
+    category:null, accountId:null };
+  state.transactions.push(t);
+  applyTransfer(t, 1); // atualiza saldo da conta e do investimento
   inv.contributions = inv.contributions || [];
-  inv.contributions.push({ date: todayKey(), amount, note: document.getElementById('invest-note').value.trim() });
-  inv.balance = (inv.balance||0) + amount;
-  closeModal('invest-modal'); save(); showToast('✅ Movimento registado');
+  inv.contributions.push({ date: todayKey(), amount, note });
+  closeModal('invest-modal'); save(); showToast('✅ Movimento registado em Transações');
 }
 function renderGoals(){
   const el = document.getElementById('goals-list');
@@ -1569,6 +1693,7 @@ function saveHouseRemaining(){
   closeModal('house-modal'); save(); showToast('✅ Saldo em dívida corrigido');
 }
 function openLoanPayModal(){
+  fillAccountSelect(document.getElementById('loan-pay-account'), null);
   document.getElementById('loan-pay-amount').value = '';
   document.getElementById('loan-pay-date').value = todayKey();
   document.getElementById('loan-pay-modal').classList.add('open');
@@ -1579,9 +1704,11 @@ function saveLoanPayment(){
   const date = document.getElementById('loan-pay-date').value || todayKey();
   state.house.loan.baseRemaining = Math.max(0, computeLoanRemaining() - amt);
   state.house.loan.baseMonth = todayKey().slice(0,7);
-  state.transactions.push({ id: state.nextTxId++, desc: 'Pagamento empréstimo ' + state.house.loan.credor,
+  const t = { id: state.nextTxId++, desc: 'Pagamento empréstimo ' + state.house.loan.credor,
     kind:'expense', amount:-Math.abs(amt), date, category:'Casa',
-    accountId: state.accounts[0] ? state.accounts[0].id : null });
+    accountId: parseInt(document.getElementById('loan-pay-account').value)||null, applied:true };
+  state.transactions.push(t);
+  applyTxBalance(t, 1); // debita a conta escolhida
   closeModal('loan-pay-modal'); save();
   showToast('✅ Pagamento registado — saldo em dívida: ' + fmtEUR(computeLoanRemaining()));
 }
@@ -1650,11 +1777,13 @@ function renderHouse(){
     </div>`;
   }).join('') : '<div class="empty-state" style="padding:14px"><p>Sem débito mensal configurado</p></div>';
 
-  document.getElementById('house-transfers').innerHTML = `<div class="timeline">${loan.transfers.map(t => `
-    <div class="tl-item"><div class="tl-dot"></div>
-      <div class="tl-info"><div class="t">Transferência de ${esc(loan.credor)}</div><div class="s">${t.date}</div></div>
-      <div class="tl-val">${fmtEUR(t.amount)}</div>
-    </div>`).join('')}</div>`;
+  const totalReceived = loan.transfers.reduce((s,t) => s + t.amount, 0);
+  document.getElementById('house-transfers').innerHTML = `
+    <div class="row" onclick="openLoanHistory()">
+      <div class="row-emoji">💶</div>
+      <div class="row-info"><div class="row-name">Total recebido</div><div class="row-detail">toca para ver o detalhe do recebido, do pago e a estimativa de fim</div></div>
+      <div class="row-val">${fmtEUR(totalReceived)}</div>
+    </div>`;
 
   const bc = h.bankComparison;
   document.getElementById('house-bank-comparison').innerHTML = `
@@ -1663,10 +1792,158 @@ function renderHouse(){
       <div class="stat-box"><div class="l">Taxa Fixa (10 anos)</div><div class="v">${fmtEUR(bc.fixed.avgMonthly)}/mês</div><div class="row-detail">total 120 meses: ${fmtEUR(bc.fixed.total120)}</div></div>
     </div>`;
 
-  document.getElementById('house-rooms').innerHTML = h.roomRental.map(r => `
-    <div class="row" style="cursor:default"><div class="row-emoji">🛏️</div>
-      <div class="row-info"><div class="row-name">Quarto (${r.rooms} pessoas na casa)</div><div class="row-detail">custo por pessoa ${fmtEUR(r.costPerPerson)}</div></div>
-      <div class="row-val">${fmtEUR(r.price)}/mês</div></div>`).join('');
+  renderRooms();
+}
+
+function openLoanHistory(){
+  const loan = state.house.loan;
+  const totalReceived = loan.transfers.reduce((s,t) => s + t.amount, 0);
+  const rem = computeLoanRemaining();
+  const totalPaid = Math.max(0, loan.total - rem);
+  const payTxs = state.transactions
+    .filter(t => t.kind === 'expense' && (t.desc||'').startsWith('Pagamento empréstimo'))
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const curM = todayKey().slice(0,7);
+  let lastPay = payTxs.length ? Math.abs(payTxs[0].amount) : 0;
+  if (!lastPay) {
+    // sem pagamentos registados: usa o débito mensal ativo, ou o mais recente
+    const plans = (loan.paymentPlans||[]).slice().sort((a,b) => b.to.localeCompare(a.to));
+    const ap = plans.find(p => p.from <= curM && curM <= p.to) || plans[0];
+    lastPay = ap ? ap.amount : 0;
+  }
+  let estimate;
+  if (rem <= 0) estimate = 'Empréstimo pago na totalidade 🎉';
+  else if (lastPay > 0) {
+    const months = Math.ceil(rem / lastPay);
+    estimate = `Mantendo ${fmtEUR(lastPay)}/mês (último valor pago), terminas de pagar em ≈ ${fmtMonth(addMonthsKey(curM, months))} (${months} ${months===1?'mês':'meses'}).`;
+  } else {
+    estimate = 'Regista um pagamento ou configura um débito mensal para calcular a estimativa de fim.';
+  }
+  document.getElementById('loan-history-body').innerHTML = `
+    <div class="stat-grid" style="margin-bottom:12px">
+      <div class="stat-box"><div class="l">Recebido</div><div class="v">${fmtEUR(totalReceived)}</div></div>
+      <div class="stat-box"><div class="l">Pago até agora</div><div class="v" style="color:var(--good)">${fmtEUR(totalPaid)}</div></div>
+      <div class="stat-box"><div class="l">Em dívida</div><div class="v" style="color:var(--warn)">${fmtEUR(rem)}</div></div>
+      <div class="stat-box"><div class="l">Último pagamento</div><div class="v">${lastPay ? fmtEUR(lastPay) : '—'}</div></div>
+    </div>
+    <div class="note-box" style="margin-bottom:12px">${estimate}</div>
+    <div class="form-label">Transferências recebidas:</div>
+    <div class="timeline">${loan.transfers.map(t => `
+      <div class="tl-item"><div class="tl-dot"${t.amount<0?' style="background:var(--warn)"':''}></div>
+        <div class="tl-info"><div class="t">${esc(t.label || ('Transferência de ' + loan.credor))}</div><div class="s">${t.date}</div></div>
+        <div class="tl-val"${t.amount<0?' style="color:var(--warn)"':''}>${fmtEUR(t.amount)}</div>
+      </div>`).join('')}</div>
+    <div class="form-label" style="margin-top:12px">Pagamentos registados:</div>
+    ${payTxs.length ? `<div class="timeline">${payTxs.map(t => `
+      <div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
+        <div class="tl-info"><div class="t">${esc(t.desc)}</div><div class="s">${t.date}</div></div>
+        <div class="tl-val">${fmtEUR(Math.abs(t.amount))}</div>
+      </div>`).join('')}</div>` : '<div class="row-detail">Nenhum pagamento registado nas Transações (os débitos mensais configurados também abatem no saldo).</div>'}`;
+  document.getElementById('loan-history-modal').classList.add('open');
+}
+
+// ── RENDA DE QUARTOS ──
+function renderRooms(){
+  const rooms = state.house.rooms || [];
+  const curM = todayKey().slice(0,7);
+  const el = document.getElementById('house-rooms');
+  if (!rooms.length) { el.innerHTML = '<div class="empty-state" style="padding:14px"><p>Sem quartos configurados</p></div>'; return; }
+  let totalMonth = 0;
+  const rows = rooms.map(r => {
+    const adj = (r.adjustments||[]).filter(a => a.month === curM).reduce((s,a) => s + a.amount, 0);
+    const eff = (r.rent||0) + adj;
+    totalMonth += eff;
+    return `<div class="row" onclick="openRoomModal(${r.id})">
+      <div class="row-emoji">🛏️</div>
+      <div class="row-info"><div class="row-name">${esc(r.name)}</div>
+        <div class="row-detail">${fmtEUR(r.rent)}/mês${adj ? ` · ajuste este mês ${adj>0?'+':''}${fmtEUR(adj)}` : ''}</div></div>
+      <div class="row-val">${fmtEUR(eff)}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="stat-box" style="margin-bottom:10px"><div class="l">Renda esperada este mês (${fmtMonth(curM)})</div><div class="v">${fmtEUR(totalMonth)}</div></div>` + rows;
+}
+function openRoomModal(id){
+  document.getElementById('room-id').value = id||'';
+  document.getElementById('room-modal-title').textContent = id ? 'Editar Quarto' : 'Novo Quarto';
+  document.getElementById('room-delete-btn').style.display = id ? 'block' : 'none';
+  document.getElementById('room-add-adj').style.display = id ? 'block' : 'none';
+  const adjEl = document.getElementById('room-adjustments');
+  if (id) {
+    const r = state.house.rooms.find(x=>x.id===id);
+    document.getElementById('room-name').value = r.name;
+    document.getElementById('room-rent').value = r.rent;
+    const adjs = (r.adjustments||[]).slice().sort((a,b)=>b.month.localeCompare(a.month));
+    adjEl.innerHTML = adjs.length ? '<div class="form-label">Ajustes pontuais:</div>' + adjs.map(a => `
+      <div class="row" onclick="openRoomAdjModal(${a.id})">
+        <div class="row-emoji">${a.amount>=0?'➕':'➖'}</div>
+        <div class="row-info"><div class="row-name">${fmtMonth(a.month)}</div><div class="row-detail">${esc(a.note||'')}</div></div>
+        <div class="row-val ${a.amount>=0?'pos':'neg'}">${a.amount>=0?'+':''}${fmtEUR(a.amount)}</div>
+      </div>`).join('') : '';
+  } else {
+    document.getElementById('room-name').value = '';
+    document.getElementById('room-rent').value = '';
+    adjEl.innerHTML = '';
+  }
+  document.getElementById('room-modal').classList.add('open');
+}
+function saveRoom(){
+  const id = document.getElementById('room-id').value;
+  const name = document.getElementById('room-name').value.trim();
+  const rent = parseFloat(document.getElementById('room-rent').value)||0;
+  if (!name) { showToast('Indica um nome'); return; }
+  const h = state.house;
+  if (id) { Object.assign(h.rooms.find(r=>r.id==id), { name, rent }); }
+  else { h.nextRoomId = h.nextRoomId || 1; h.rooms.push({ id: h.nextRoomId++, name, rent, adjustments:[] }); }
+  closeModal('room-modal'); save(); showToast('✅ Quarto guardado');
+}
+function deleteRoom(){
+  const id = parseInt(document.getElementById('room-id').value);
+  state.house.rooms = state.house.rooms.filter(r=>r.id!==id);
+  closeModal('room-modal'); save(); showToast('🗑️ Quarto eliminado');
+}
+function openRoomAdjModal(adjId){
+  const roomId = parseInt(document.getElementById('room-id').value);
+  if (!roomId) { showToast('Guarda o quarto primeiro'); return; }
+  closeModal('room-modal');
+  document.getElementById('adj-room-id').value = roomId;
+  document.getElementById('adj-id').value = adjId||'';
+  document.getElementById('adj-modal-title').textContent = adjId ? 'Editar Ajuste Pontual' : 'Ajuste Pontual';
+  document.getElementById('adj-delete-btn').style.display = adjId ? 'block' : 'none';
+  if (adjId) {
+    const r = state.house.rooms.find(x=>x.id===roomId);
+    const a = r.adjustments.find(x=>x.id===adjId);
+    document.getElementById('adj-month').value = a.month;
+    document.getElementById('adj-amount').value = a.amount;
+    document.getElementById('adj-note').value = a.note||'';
+  } else {
+    document.getElementById('adj-month').value = todayKey().slice(0,7);
+    document.getElementById('adj-amount').value = '';
+    document.getElementById('adj-note').value = '';
+  }
+  document.getElementById('room-adj-modal').classList.add('open');
+}
+function saveRoomAdj(){
+  const roomId = parseInt(document.getElementById('adj-room-id').value);
+  const adjId = document.getElementById('adj-id').value;
+  const month = document.getElementById('adj-month').value;
+  const amount = parseFloat(document.getElementById('adj-amount').value);
+  if (!month || !amount) { showToast('Preenche mês e valor (pode ser negativo)'); return; }
+  const note = document.getElementById('adj-note').value.trim();
+  const r = state.house.rooms.find(x=>x.id===roomId);
+  r.adjustments = r.adjustments || [];
+  const h = state.house;
+  if (adjId) { Object.assign(r.adjustments.find(a=>a.id==adjId), { month, amount, note }); }
+  else { h.nextRoomAdjId = h.nextRoomAdjId || 1; r.adjustments.push({ id: h.nextRoomAdjId++, month, amount, note }); }
+  closeModal('room-adj-modal'); save(); showToast('✅ Ajuste guardado');
+  openRoomModal(roomId);
+}
+function deleteRoomAdj(){
+  const roomId = parseInt(document.getElementById('adj-room-id').value);
+  const adjId = parseInt(document.getElementById('adj-id').value);
+  const r = state.house.rooms.find(x=>x.id===roomId);
+  r.adjustments = (r.adjustments||[]).filter(a=>a.id!==adjId);
+  closeModal('room-adj-modal'); save(); showToast('🗑️ Ajuste eliminado');
+  openRoomModal(roomId);
 }
 
 // ══════════════════════════════════════════

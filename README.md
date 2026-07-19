@@ -8,9 +8,12 @@ browser.
 
 ## Funcionalidades
 
-- **Dashboard** — património líquido, receitas/despesas do mês, cartão de
-  crédito, empréstimo da casa, despesas por categoria do mês, histórico
-  mensal e próximas despesas fixas.
+- **Dashboard** — património líquido (total investido + contas à ordem) com
+  simulação temporal: avança mês a mês para ver o valor previsto assumindo
+  que as receitas/despesas do mês atual se mantêm, mais os movimentos
+  previstos. Também: receitas/despesas do mês, cartão de crédito, empréstimo
+  da casa, despesas por categoria, histórico mensal e próximas despesas
+  fixas.
 - **Contas** — contas bancárias com saldo a hoje; clicar numa conta mostra a
   projeção do saldo ao longo do tempo, descontando/somando os movimentos
   previstos dessa conta.
@@ -27,11 +30,21 @@ browser.
 - **Investir** — contas de investimento (Trading, PPR) com histórico de
   movimentos, e metas de poupança.
 - **Casa** — detalhe do financiamento do apartamento e do empréstimo pessoal
-  (Deny e Mauricio): valor emprestado, transferências recebidas, e saldo em
-  dívida calculado a partir de débitos mensais configuráveis por período
-  (ex: 300 €/mês de Mar 2025 a Fev 2026, depois outro valor) com correção
-  manual sempre disponível. O botão "Registar pagamento" abate o valor no
-  saldo e cria automaticamente a transação correspondente.
+  (Deny e Mauricio): valor emprestado e saldo em dívida calculado a partir
+  de débitos mensais configuráveis por período (ex: 300 €/mês de Mar 2025 a
+  Fev 2026, depois outro valor) com correção manual sempre disponível. O
+  card "Recebido" mostra só o total; ao tocar abre o detalhe (transferências
+  recebidas, pagamentos feitos e estimativa de quando o empréstimo fica pago
+  mantendo o valor do último mês). Renda de quartos configurável: número de
+  quartos, nome e renda de cada um, e ajustes pontuais por mês (ex:
+  inquilino não pagou este mês e paga dois juntos no seguinte). O botão
+  "Registar pagamento" abate o valor no saldo, cria a transação e debita a
+  conta escolhida.
+
+As transações de receita/despesa novas afetam o saldo da conta associada
+(as antigas, criadas antes desta funcionalidade, não são retroativamente
+aplicadas). Pagamentos de despesas fixas e movimentos de investimento também
+geram transações e movem o saldo das contas.
 
 ## Dados iniciais
 

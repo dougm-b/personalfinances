@@ -72,17 +72,22 @@
         { "date": "2024-11-13", "amount": 4815 },
         { "date": "2024-11-14", "amount": 4835 },
         { "date": "2024-11-18", "amount": 9667.19 },
-        { "date": "2024-11-21", "amount": 4836 }
+        { "date": "2024-11-21", "amount": 4836 },
+        { "date": "2024-11-21", "amount": -3000, "label": "Dinheiro do Douglas (descontado do empréstimo)" }
       ]
     },
     "bankComparison": {
       "variable": { "avgMonthly": 296.25, "total120": 35550 },
       "fixed": { "avgMonthly": 295.03, "total120": 35403.6 }
     },
-    "roomRental": [
-      { "rooms": 4, "price": 320, "costPerPerson": 52.5 },
-      { "rooms": 5, "price": 300, "costPerPerson": 50 }
-    ]
+    "rooms": [
+      { "id": 1, "name": "Quarto 1", "rent": 320, "adjustments": [] },
+      { "id": 2, "name": "Quarto 2", "rent": 320, "adjustments": [] },
+      { "id": 3, "name": "Quarto 3", "rent": 320, "adjustments": [] },
+      { "id": 4, "name": "Quarto 4", "rent": 320, "adjustments": [] }
+    ],
+    "nextRoomId": 5,
+    "nextRoomAdjId": 1
   },
   "settings": { "currency": "EUR" }
 }
