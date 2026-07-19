@@ -29,9 +29,15 @@
       "name": "Trading 212",
       "type": "À ordem",
       "balance": 0
+    },
+    {
+      "id": 6,
+      "name": "Moey",
+      "type": "À ordem",
+      "balance": 0
     }
   ],
-  "nextAccountId": 6,
+  "nextAccountId": 7,
   "transactions": [
     {
       "id": 1,
