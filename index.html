@@ -435,6 +435,15 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
+<div class="modal-overlay" id="account-detail-modal">
+  <div class="modal">
+    <h3><span id="acc-detail-title">Conta</span><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></h3>
+    <div id="acc-detail-body"></div>
+    <button class="btn-secondary" id="acc-detail-edit">✎ Editar conta</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="tx-modal">
   <div class="modal">
     <h3><span id="tx-modal-title">Nova Transação</span><button class="modal-close" onclick="closeModal('tx-modal')">✕</button></h3>
@@ -483,6 +492,29 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
+<div class="modal-overlay" id="planned-modal">
+  <div class="modal">
+    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></h3>
+    <input type="hidden" id="pl-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="pl-desc" placeholder="Ex: Ordenado"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="pl-amount" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="pl-kind"><option value="income">Receita</option><option value="expense">Despesa</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data de inserção</label><input class="form-input" id="pl-created" disabled/></div>
+      <div class="form-group"><label class="form-label">Data de pagamento</label><input class="form-input" id="pl-due" type="date"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="pl-account"></select></div>
+    <button class="btn-primary" onclick="savePlanned()">Guardar</button>
+    <button class="btn-secondary" id="pl-confirm-btn" onclick="confirmPlanned()" style="display:none">✓ Confirmar como efetuado</button>
+    <button class="btn-danger" id="pl-delete-btn" onclick="deletePlanned()" style="display:none">Eliminar</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="card-modal">
   <div class="modal">
     <h3><span id="card-modal-title">Novo Cartão</span><button class="modal-close" onclick="closeModal('card-modal')">✕</button></h3>
@@ -495,6 +527,22 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <div class="form-group"><label class="form-label">A pagar este mês (€) — despesas do mês</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
     <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="financed-modal">
+  <div class="modal">
+    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
+    <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
+    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
+    <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
   </div>
 </div>
 
@@ -520,6 +568,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
 <div class="modal-overlay" id="goal-modal">
   <div class="modal">
     <h3><span id="goal-modal-title">Nova Meta</span><button class="modal-close" onclick="closeModal('goal-modal')">✕</button></h3>
@@ -542,6 +591,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
 <div class="modal-overlay" id="loan-pay-modal">
   <div class="modal">
     <h3>Registar Pagamento do Empréstimo <button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></h3>
@@ -553,20 +603,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
-<div class="modal-overlay" id="financed-modal">
-  <div class="modal">
-    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
-    <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
-    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
-      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
-    </div>
-    <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
-    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
-    <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
-  </div>
-</div>
 
 <div class="modal-overlay" id="plan-modal">
   <div class="modal">
@@ -584,35 +620,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
-<div class="modal-overlay" id="planned-modal">
-  <div class="modal">
-    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></h3>
-    <input type="hidden" id="pl-id"/>
-    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="pl-desc" placeholder="Ex: Ordenado"/></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="pl-amount" type="number" step="0.01"/></div>
-      <div class="form-group"><label class="form-label">Tipo</label>
-        <select class="form-select" id="pl-kind"><option value="income">Receita</option><option value="expense">Despesa</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Data de inserção</label><input class="form-input" id="pl-created" disabled/></div>
-      <div class="form-group"><label class="form-label">Data de pagamento</label><input class="form-input" id="pl-due" type="date"/></div>
-    </div>
-    <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="pl-account"></select></div>
-    <button class="btn-primary" onclick="savePlanned()">Guardar</button>
-    <button class="btn-secondary" id="pl-confirm-btn" onclick="confirmPlanned()" style="display:none">✓ Confirmar como efetuado</button>
-    <button class="btn-danger" id="pl-delete-btn" onclick="deletePlanned()" style="display:none">Eliminar</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="account-detail-modal">
-  <div class="modal">
-    <h3><span id="acc-detail-title">Conta</span><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></h3>
-    <div id="acc-detail-body"></div>
-    <button class="btn-secondary" id="acc-detail-edit">✎ Editar conta</button>
-  </div>
-</div>
 
 <div class="modal-overlay" id="room-modal">
   <div class="modal">
@@ -629,6 +636,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
 <div class="modal-overlay" id="room-adj-modal">
   <div class="modal">
     <h3><span id="adj-modal-title">Ajuste Pontual</span><button class="modal-close" onclick="closeModal('room-adj-modal')">✕</button></h3>
@@ -642,6 +650,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <button class="btn-danger" id="adj-delete-btn" onclick="deleteRoomAdj()" style="display:none">Eliminar ajuste</button>
   </div>
 </div>
+
 
 <div class="modal-overlay" id="loan-history-modal">
   <div class="modal">
@@ -661,6 +670,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <button class="btn-danger" onclick="resetToken()">🔓 Esquecer token GitHub</button>
   </div>
 </div>
+
 
 <script>
 // ══════════════════════════════════════════
@@ -694,20 +704,6 @@ function nextMonth(m){
   return y + '-' + String(mo).padStart(2,'0');
 }
 
-// Saldo em dívida do empréstimo = valor-base (corrigível manualmente) menos os
-// débitos mensais configurados nos meses decorridos desde essa correção.
-function computeLoanRemaining(){
-  const loan = state.house.loan;
-  let rem = loan.baseRemaining != null ? loan.baseRemaining : loan.total;
-  const cur = todayKey().slice(0,7);
-  let m = loan.baseMonth || cur;
-  while (m < cur) {
-    m = nextMonth(m);
-    (loan.paymentPlans||[]).forEach(p => { if (p.from <= m && m <= p.to) rem -= p.amount; });
-  }
-  return Math.max(0, rem);
-}
-
 // contas + investimentos como origem/destino de transferências
 function entityOptions(){
   return state.accounts.map(a => ({ref:'acc:'+a.id, name:a.name}))
@@ -737,68 +733,7 @@ function addMonthsKey(m, n){
   for (let i = 0; i < n; i++) x = nextMonth(x);
   return x;
 }
-// total esperado da renda dos quartos num dado mês (rendas base + ajustes)
-function roomsMonthlyTotal(mk){
-  return round2((state.house.rooms||[]).reduce((s,r) =>
-    s + (r.rent||0) + (r.adjustments||[]).filter(a => a.month === mk).reduce((x,a) => x + a.amount, 0), 0));
-}
-// mantém nas Fixas uma receita "Renda dos Quartos" sincronizada com a aba Casa
-function ensureRoomsBill(){
-  const total = roomsMonthlyTotal(todayKey().slice(0,7));
-  let b = state.recurringBills.find(x => x.auto === 'rooms');
-  if (!b) {
-    state.nextBillId = state.nextBillId || 1;
-    state.recurringBills.push({ id: state.nextBillId++, name:'Renda dos Quartos', category:'Renda Recebida',
-      kind:'income', day:5, auto:'rooms', accountId:null, amount: total });
-  } else {
-    b.amount = total;
-    b.kind = 'income';
-  }
-}
-// cria as transações dos débitos mensais do empréstimo nos meses decorridos,
-// debitando a conta configurada em cada débito
-function runLoanPlanCharges(){
-  const loan = state.house.loan;
-  const cur = todayKey().slice(0,7);
-  let changed = false;
-  (loan.paymentPlans||[]).forEach(p => {
-    if (!p.chargedUntil) { p.chargedUntil = cur; changed = true; return; } // nunca cobrar retroativamente ao ser criado/migrado
-    if (!p.accountId) { if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; } return; }
-    let m = p.chargedUntil;
-    while (m < cur) {
-      m = nextMonth(m);
-      if (p.from <= m && m <= p.to) {
-        const t = { id: state.nextTxId++,
-          desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
-          kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
-          category:'Casa', accountId: p.accountId, applied:true };
-        state.transactions.push(t);
-        applyTxBalance(t, 1);
-        changed = true;
-      }
-    }
-    if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; }
-  });
-  return changed;
-}
-// projeção do fim do empréstimo mantendo os débitos configurados
-// (quando os períodos acabam, assume que o último valor se mantém)
-function projectLoanPayoff(){
-  let rem = computeLoanRemaining();
-  if (rem <= 0) return { months: 0 };
-  const plans = (state.house.loan.paymentPlans||[]).slice().sort((a,b) => a.from.localeCompare(b.from));
-  if (!plans.length) return null;
-  const lastAmt = plans[plans.length-1].amount;
-  let m = todayKey().slice(0,7), months = 0;
-  while (rem > 0 && months < 600) {
-    m = nextMonth(m); months++;
-    const p = plans.find(x => x.from <= m && m <= x.to);
-    const amt = p ? p.amount : lastAmt;
-    if (!amt || amt <= 0) return null;
-    rem -= amt;
-  }
-  return { months, end: m, monthly: lastAmt };
-}
+
 function fillAccountSelect(el, selectedId){
   el.innerHTML = state.accounts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
   const def = state.accounts.find(a => a.type === 'À ordem');
@@ -1880,6 +1815,89 @@ function deleteGoal(){
   const id = parseInt(document.getElementById('goal-id').value);
   state.savingsGoals = state.savingsGoals.filter(g=>g.id!==id);
   closeModal('goal-modal'); save(); showToast('🗑️ Meta eliminada');
+}
+
+// ══════════════════════════════════════════
+// CASA / EMPRÉSTIMO — helpers (usados também pelo dashboard e pelo arranque)
+// ══════════════════════════════════════════
+// Saldo em dívida do empréstimo = valor-base (corrigível manualmente) menos os
+// débitos mensais configurados nos meses decorridos desde essa correção.
+function computeLoanRemaining(){
+  const loan = state.house.loan;
+  let rem = loan.baseRemaining != null ? loan.baseRemaining : loan.total;
+  const cur = todayKey().slice(0,7);
+  let m = loan.baseMonth || cur;
+  while (m < cur) {
+    m = nextMonth(m);
+    (loan.paymentPlans||[]).forEach(p => { if (p.from <= m && m <= p.to) rem -= p.amount; });
+  }
+  return Math.max(0, rem);
+}
+
+// total esperado da renda dos quartos num dado mês (rendas base + ajustes)
+function roomsMonthlyTotal(mk){
+  return round2((state.house.rooms||[]).reduce((s,r) =>
+    s + (r.rent||0) + (r.adjustments||[]).filter(a => a.month === mk).reduce((x,a) => x + a.amount, 0), 0));
+}
+
+// mantém nas Fixas uma receita "Renda dos Quartos" sincronizada com a aba Casa
+function ensureRoomsBill(){
+  const total = roomsMonthlyTotal(todayKey().slice(0,7));
+  let b = state.recurringBills.find(x => x.auto === 'rooms');
+  if (!b) {
+    state.nextBillId = state.nextBillId || 1;
+    state.recurringBills.push({ id: state.nextBillId++, name:'Renda dos Quartos', category:'Renda Recebida',
+      kind:'income', day:5, auto:'rooms', accountId:null, amount: total });
+  } else {
+    b.amount = total;
+    b.kind = 'income';
+  }
+}
+
+// cria as transações dos débitos mensais do empréstimo nos meses decorridos,
+// debitando a conta configurada em cada débito
+function runLoanPlanCharges(){
+  const loan = state.house.loan;
+  const cur = todayKey().slice(0,7);
+  let changed = false;
+  (loan.paymentPlans||[]).forEach(p => {
+    if (!p.chargedUntil) { p.chargedUntil = cur; changed = true; return; } // nunca cobrar retroativamente ao ser criado/migrado
+    if (!p.accountId) { if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; } return; }
+    let m = p.chargedUntil;
+    while (m < cur) {
+      m = nextMonth(m);
+      if (p.from <= m && m <= p.to) {
+        const t = { id: state.nextTxId++,
+          desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
+          kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
+          category:'Casa', accountId: p.accountId, applied:true };
+        state.transactions.push(t);
+        applyTxBalance(t, 1);
+        changed = true;
+      }
+    }
+    if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; }
+  });
+  return changed;
+}
+
+// projeção do fim do empréstimo mantendo os débitos configurados
+// (quando os períodos acabam, assume que o último valor se mantém)
+function projectLoanPayoff(){
+  let rem = computeLoanRemaining();
+  if (rem <= 0) return { months: 0 };
+  const plans = (state.house.loan.paymentPlans||[]).slice().sort((a,b) => a.from.localeCompare(b.from));
+  if (!plans.length) return null;
+  const lastAmt = plans[plans.length-1].amount;
+  let m = todayKey().slice(0,7), months = 0;
+  while (rem > 0 && months < 600) {
+    m = nextMonth(m); months++;
+    const p = plans.find(x => x.from <= m && m <= x.to);
+    const amt = p ? p.amount : lastAmt;
+    if (!amt || amt <= 0) return null;
+    rem -= amt;
+  }
+  return { months, end: m, monthly: lastAmt };
 }
 
 // ══════════════════════════════════════════

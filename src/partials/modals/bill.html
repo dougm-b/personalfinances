@@ -1,0 +1,46 @@
+<div class="modal-overlay" id="bill-modal">
+  <div class="modal">
+    <h3><span id="bill-modal-title">Nova Despesa Fixa</span><button class="modal-close" onclick="closeModal('bill-modal')">✕</button></h3>
+    <input type="hidden" id="bill-id"/>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="bill-name" placeholder="Ex: Vodafone"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="bill-amount" type="number" step="0.01" placeholder="0.00 (deixa vazio se variável)"/></div>
+      <div class="form-group"><label class="form-label">Dia de vencimento</label><input class="form-input" id="bill-day" type="number" min="1" max="31" placeholder="1-31"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Tipo</label>
+      <select class="form-select" id="bill-kind">
+        <option value="expense">Despesa — debita a conta</option>
+        <option value="income">Receita — credita a conta</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Categoria</label><select class="form-select" id="bill-category"></select></div>
+    <div class="form-group"><label class="form-label">Conta associada</label><select class="form-select" id="bill-account"></select></div>
+    <button class="btn-primary" onclick="saveBill()">Guardar</button>
+    <button class="btn-secondary" onclick="registerBillPayment()">Registar pagamento este mês →</button>
+    <button class="btn-danger" id="bill-delete-btn" onclick="deleteBill()" style="display:none">Eliminar</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="planned-modal">
+  <div class="modal">
+    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></h3>
+    <input type="hidden" id="pl-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="pl-desc" placeholder="Ex: Ordenado"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="pl-amount" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="pl-kind"><option value="income">Receita</option><option value="expense">Despesa</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data de inserção</label><input class="form-input" id="pl-created" disabled/></div>
+      <div class="form-group"><label class="form-label">Data de pagamento</label><input class="form-input" id="pl-due" type="date"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="pl-account"></select></div>
+    <button class="btn-primary" onclick="savePlanned()">Guardar</button>
+    <button class="btn-secondary" id="pl-confirm-btn" onclick="confirmPlanned()" style="display:none">✓ Confirmar como efetuado</button>
+    <button class="btn-danger" id="pl-delete-btn" onclick="deletePlanned()" style="display:none">Eliminar</button>
+  </div>
+</div>
+

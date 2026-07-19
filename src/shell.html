@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Finanças"/>
+<title>Finanças — Douglas Barros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+<!--INCLUDE:css/app.css-->
+</style>
+</head>
+<body>
+
+<!--INCLUDE:partials/setup.html-->
+<div id="app">
+  <div id="topbar">
+    <div class="logo-row">
+      <svg id="coin-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.5 1.3-2.5 3-2.5s3 1 3 2.3c0 2.7-6 1.2-6 3.9 0 1.4 1.3 2.3 3 2.3s3-1 3-2.5"/>
+      </svg>
+      <div class="logo">Finanças<span>Douglas Barros</span></div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" onclick="openSettingsModal()" title="Definições">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="content">
+
+<!--INCLUDE:screens/dashboard.html-->
+<!--INCLUDE:screens/accounts.html-->
+<!--INCLUDE:screens/tx.html-->
+<!--INCLUDE:screens/bills.html-->
+<!--INCLUDE:screens/cards.html-->
+<!--INCLUDE:screens/invest.html-->
+<!--INCLUDE:screens/house.html-->
+  </div><!-- /content -->
+
+<!--INCLUDE:partials/nav.html-->
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!--INCLUDE:partials/modals/account.html-->
+<!--INCLUDE:partials/modals/tx.html-->
+<!--INCLUDE:partials/modals/bill.html-->
+<!--INCLUDE:partials/modals/card.html-->
+<!--INCLUDE:partials/modals/invest.html-->
+<!--INCLUDE:partials/modals/house.html-->
+<!--INCLUDE:partials/modals/settings.html-->
+
+<script>
+<!--INCLUDE:js/core.js-->
+<!--INCLUDE:js/dashboard.js-->
+<!--INCLUDE:js/accounts.js-->
+<!--INCLUDE:js/tx.js-->
+<!--INCLUDE:js/bills.js-->
+<!--INCLUDE:js/cards.js-->
+<!--INCLUDE:js/invest.js-->
+<!--INCLUDE:js/house.js-->
+<!--INCLUDE:js/boot.js-->
+</script>
+</body>
+</html>

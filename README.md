@@ -84,11 +84,14 @@ exportado.
 ## Estrutura
 
 ```
-index.html          app inteira (HTML + CSS + JS num único ficheiro,
-                     sem build step)
-data/finance.json    dados sincronizados via GitHub API
+index.html           app inteira num único ficheiro — GERADO por build.js,
+                      não editar diretamente
+build.js             monta src/shell.html + src/** → index.html
+src/                 fontes: css, screens (1 por aba), partials (modais,
+                      nav, setup) e js (1 por aba + core + boot)
+data/finance.json    dados sincronizados via GitHub API (nunca commitar
+                      manualmente — é escrito pela app)
 ```
 
-Não há `build.js` nem `src/` — ao contrário do repo `dbfit`, esta app é um
-único ficheiro autossuficiente. Para alterar algo, edita `index.html`
-diretamente.
+Para alterar algo: edita os ficheiros em `src/`, corre `node build.js` e
+faz commit das fontes + `index.html` regenerado. Detalhes em `CLAUDE.md`.

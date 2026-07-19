@@ -1,0 +1,27 @@
+<div class="modal-overlay" id="account-modal">
+  <div class="modal">
+    <h3><span id="account-modal-title">Nova Conta</span><button class="modal-close" onclick="closeModal('account-modal')">✕</button></h3>
+    <input type="hidden" id="acc-id"/>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="acc-name" placeholder="Millennium bcp"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="acc-type">
+          <option>À ordem</option><option>Poupança</option><option>Poupança automática</option><option>Outra</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Saldo (€)</label><input class="form-input" id="acc-balance" type="number" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <button class="btn-primary" onclick="saveAccount()">Guardar</button>
+    <button class="btn-danger" id="acc-delete-btn" onclick="deleteAccount()" style="display:none">Eliminar conta</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="account-detail-modal">
+  <div class="modal">
+    <h3><span id="acc-detail-title">Conta</span><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></h3>
+    <div id="acc-detail-body"></div>
+    <button class="btn-secondary" id="acc-detail-edit">✎ Editar conta</button>
+  </div>
+</div>
+

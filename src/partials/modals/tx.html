@@ -1,0 +1,25 @@
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal">
+    <h3><span id="tx-modal-title">Nova Transação</span><button class="modal-close" onclick="closeModal('tx-modal')">✕</button></h3>
+    <input type="hidden" id="tx-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="tx-desc" placeholder="Ex: Salário Randstad"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="tx-amount" type="number" step="0.01" placeholder="0.00"/></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="tx-kind" onchange="onTxKindChange()"><option value="expense">Despesa</option><option value="income">Receita</option><option value="transfer">Transferência</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="tx-date" type="date"/></div>
+      <div class="form-group" id="tx-category-group"><label class="form-label">Categoria</label><select class="form-select" id="tx-category"></select></div>
+    </div>
+    <div class="form-group" id="tx-account-group"><label class="form-label">Conta</label><select class="form-select" id="tx-account"></select></div>
+    <div id="tx-transfer-fields" style="display:none">
+      <div class="form-group"><label class="form-label">De (origem)</label><select class="form-select" id="tx-from"></select></div>
+      <div class="form-group"><label class="form-label">Para (destino)</label><select class="form-select" id="tx-to"></select></div>
+    </div>
+    <button class="btn-primary" onclick="saveTx()">Guardar</button>
+    <button class="btn-danger" id="tx-delete-btn" onclick="deleteTx()" style="display:none">Eliminar transação</button>
+  </div>
+</div>
+

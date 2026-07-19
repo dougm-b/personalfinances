@@ -1,0 +1,31 @@
+<div class="modal-overlay" id="card-modal">
+  <div class="modal">
+    <h3><span id="card-modal-title">Novo Cartão</span><button class="modal-close" onclick="closeModal('card-modal')">✕</button></h3>
+    <input type="hidden" id="card-id"/>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="card-name" placeholder="Ex: WiZink"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Limite (€)</label><input class="form-input" id="card-limit" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Valor Utilizado (€)</label><input class="form-input" id="card-used" type="number" step="0.01"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">A pagar este mês (€) — despesas do mês</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
+    <button class="btn-primary" onclick="saveCard()">Guardar</button>
+    <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="financed-modal">
+  <div class="modal">
+    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
+    <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
+    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
+    <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
+  </div>
+</div>
+

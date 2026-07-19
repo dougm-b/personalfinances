@@ -1,0 +1,26 @@
+<!-- TOKEN SETUP SCREEN -->
+<div id="token-setup">
+  <div class="lock-icon">💶</div>
+  <div class="setup-logo">Finanças</div>
+  <div class="setup-title">Configuração inicial</div>
+  <div class="setup-sub">Para sincronizar os teus dados entre dispositivos, insere o teu GitHub Personal Access Token
+    (com permissão de leitura/escrita no repositório dougm-b/personalfinances). Fica guardado só neste browser,
+    nunca é enviado para nenhum servidor além do GitHub.</div>
+  <input type="password" class="setup-input" id="token-input" placeholder="github_pat_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"/>
+  <div id="setup-error"></div>
+  <button class="setup-btn" onclick="saveToken()">Entrar →</button>
+  <div class="setup-note">🔒 O token é guardado apenas no teu browser (localStorage). Nunca é enviado a terceiros.</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- BANNER: token sem permissão de escrita -->
+<div id="perm-banner"></div>
+
+<!-- SYNC BAR -->
+<div id="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span class="sync-label" id="sync-label">sincronizado</span>
+</div>
+

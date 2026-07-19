@@ -1,0 +1,76 @@
+<div class="modal-overlay" id="house-modal">
+  <div class="modal">
+    <h3>Saldo em Dívida Atual <button class="modal-close" onclick="closeModal('house-modal')">✕</button></h3>
+    <div class="form-group"><label class="form-label">Saldo em dívida a Deny e Mauricio (€)</label><input class="form-input" id="house-remaining" type="number" step="0.01"/></div>
+    <button class="btn-primary" onclick="saveHouseRemaining()">Guardar</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="loan-pay-modal">
+  <div class="modal">
+    <h3>Registar Pagamento do Empréstimo <button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></h3>
+    <div class="form-group"><label class="form-label">Valor pago (€)</label><input class="form-input" id="loan-pay-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
+    <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="loan-pay-date" type="date"/></div>
+    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="loan-pay-account"></select></div>
+    <button class="btn-primary" onclick="saveLoanPayment()">Registar pagamento</button>
+    <div class="note-box">Abate o valor no saldo em dívida, cria a transação (categoria Casa) e debita a conta escolhida.</div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="plan-modal">
+  <div class="modal">
+    <h3><span id="plan-modal-title">Novo Débito Mensal</span><button class="modal-close" onclick="closeModal('plan-modal')">✕</button></h3>
+    <input type="hidden" id="plan-id"/>
+    <div class="form-group"><label class="form-label">Valor mensal (€)</label><input class="form-input" id="plan-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">De (mês)</label><input class="form-input" id="plan-from" type="month"/></div>
+      <div class="form-group"><label class="form-label">Até (mês)</label><input class="form-input" id="plan-to" type="month"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="plan-account"></select></div>
+    <button class="btn-primary" onclick="savePlan()">Guardar</button>
+    <div class="note-box">Em cada mês do período, é criada automaticamente a transação do pagamento e o valor é debitado desta conta.</div>
+    <button class="btn-danger" id="plan-delete-btn" onclick="deletePlan()" style="display:none">Eliminar</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="room-modal">
+  <div class="modal">
+    <h3><span id="room-modal-title">Novo Quarto</span><button class="modal-close" onclick="closeModal('room-modal')">✕</button></h3>
+    <input type="hidden" id="room-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="room-name" placeholder="Quarto 1"/></div>
+      <div class="form-group"><label class="form-label">Renda mensal (€)</label><input class="form-input" id="room-rent" type="number" step="0.01"/></div>
+    </div>
+    <div id="room-adjustments"></div>
+    <button class="btn-primary" onclick="saveRoom()">Guardar</button>
+    <button class="btn-secondary" id="room-add-adj" onclick="openRoomAdjModal()" style="display:none">± Ajuste pontual num mês</button>
+    <button class="btn-danger" id="room-delete-btn" onclick="deleteRoom()" style="display:none">Eliminar quarto</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="room-adj-modal">
+  <div class="modal">
+    <h3><span id="adj-modal-title">Ajuste Pontual</span><button class="modal-close" onclick="closeModal('room-adj-modal')">✕</button></h3>
+    <input type="hidden" id="adj-room-id"/><input type="hidden" id="adj-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Mês</label><input class="form-input" id="adj-month" type="month"/></div>
+      <div class="form-group"><label class="form-label">Valor (€, pode ser negativo)</label><input class="form-input" id="adj-amount" type="number" step="0.01" placeholder="Ex: 320 ou -320"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="adj-note" placeholder="Ex: pagou 2 meses juntos / não pagou este mês"/></div>
+    <button class="btn-primary" onclick="saveRoomAdj()">Guardar</button>
+    <button class="btn-danger" id="adj-delete-btn" onclick="deleteRoomAdj()" style="display:none">Eliminar ajuste</button>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="loan-history-modal">
+  <div class="modal">
+    <h3>Empréstimo — Detalhe <button class="modal-close" onclick="closeModal('loan-history-modal')">✕</button></h3>
+    <div id="loan-history-body"></div>
+  </div>
+</div>
+

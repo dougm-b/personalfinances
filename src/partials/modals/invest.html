@@ -1,0 +1,37 @@
+<div class="modal-overlay" id="invest-modal">
+  <div class="modal">
+    <h3>Novo Movimento <button class="modal-close" onclick="closeModal('invest-modal')">✕</button></h3>
+    <input type="hidden" id="invest-id"/>
+    <div class="form-group"><label class="form-label">Valor (€) — negativo para levantamento</label><input class="form-input" id="invest-amount" type="number" step="0.01"/></div>
+    <div class="form-group"><label class="form-label">Conta de origem/destino</label><select class="form-select" id="invest-account"></select></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="invest-note" placeholder="Ex: reforço mensal"/></div>
+    <button class="btn-primary" onclick="saveInvestContribution()">Adicionar</button>
+    <div class="note-box">Cria uma transferência em Transações e move o valor entre a conta bancária e o investimento.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="invest-fix-modal">
+  <div class="modal">
+    <h3>Corrigir Valor Atual <button class="modal-close" onclick="closeModal('invest-fix-modal')">✕</button></h3>
+    <div class="form-group"><label class="form-label">Valor atual real (€)</label><input class="form-input" id="invfix-value" type="number" step="0.01"/></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="invfix-note" placeholder="Ex: valor real na corretora / valorização"/></div>
+    <button class="btn-primary" onclick="saveInvestFix()">Guardar</button>
+    <div class="note-box">Ajusta apenas o valor deste investimento (ex: valorização, ou correção de um valor de referência desatualizado) — não mexe em nenhuma conta bancária nem cria transação. Para mover dinheiro de/para uma conta usa "+ Movimento".</div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <h3><span id="goal-modal-title">Nova Meta</span><button class="modal-close" onclick="closeModal('goal-modal')">✕</button></h3>
+    <input type="hidden" id="goal-id"/>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="goal-name" placeholder="Ex: Fundo de Emergência"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Objetivo (€)</label><input class="form-input" id="goal-target" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Atual (€)</label><input class="form-input" id="goal-current" type="number" step="0.01"/></div>
+    </div>
+    <button class="btn-primary" onclick="saveGoal()">Guardar</button>
+    <button class="btn-danger" id="goal-delete-btn" onclick="deleteGoal()" style="display:none">Eliminar meta</button>
+  </div>
+</div>
+

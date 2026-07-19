@@ -1,0 +1,13 @@
+    <!-- ══════════ CONTAS ══════════ -->
+    <div class="screen" id="accounts-screen">
+      <div class="card">
+        <div class="card-title">Resumo</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="l">Em contas</div><div class="v" id="acc-total">€0</div></div>
+          <div class="stat-box" onclick="showScreen('invest')" style="cursor:pointer"><div class="l">Investido (Trading 212 + PPR) →</div><div class="v" id="acc-invest-total">€0</div></div>
+        </div>
+      </div>
+      <div class="section-hdr"><h3>Contas Bancárias</h3><button class="add-btn" onclick="openAccountModal()">+ Nova</button></div>
+      <div id="accounts-list"></div>
+    </div>
+
