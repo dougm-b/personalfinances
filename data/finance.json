@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": -417.24
+      "balance": -997.24
     },
     {
       "id": 2,
@@ -103,9 +103,19 @@
       "category": "Seguros",
       "accountId": 1,
       "applied": true
+    },
+    {
+      "id": 7,
+      "desc": "Prestação / Renda da Casa",
+      "kind": "expense",
+      "amount": -580,
+      "date": "2026-07-19",
+      "category": "Casa",
+      "accountId": 1,
+      "applied": true
     }
   ],
-  "nextTxId": 7,
+  "nextTxId": 8,
   "recurringBills": [
     {
       "id": 1,
