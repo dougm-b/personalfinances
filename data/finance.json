@@ -252,12 +252,6 @@
         "name": "Quarto 3",
         "rent": 320,
         "adjustments": []
-      },
-      {
-        "id": 4,
-        "name": "Quarto 4",
-        "rent": 320,
-        "adjustments": []
       }
     ],
     "nextRoomId": 5,
