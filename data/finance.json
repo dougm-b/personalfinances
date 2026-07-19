@@ -1,0 +1,91 @@
+{
+  "accounts": [
+    { "id": 1, "name": "Millennium bcp", "type": "À ordem", "balance": 222.14 },
+    { "id": 2, "name": "ActivoBank", "type": "Poupança", "balance": 49.27 },
+    { "id": 3, "name": "Revolut", "type": "À ordem", "balance": 0 },
+    { "id": 4, "name": "Reservas (poupança automática)", "type": "Poupança automática", "balance": 1265.61 }
+  ],
+  "nextAccountId": 5,
+  "transactions": [],
+  "nextTxId": 1,
+  "recurringBills": [
+    { "id": 1, "name": "Prestação / Renda da Casa", "category": "Casa", "amount": 580, "day": 8 },
+    { "id": 2, "name": "Água (Agere)", "category": "Utilidades", "amount": 41.65, "day": 20 },
+    { "id": 3, "name": "Eletricidade (Endesa)", "category": "Utilidades", "amount": null, "day": 15 },
+    { "id": 4, "name": "Seguro Ocidental — Casa", "category": "Seguros", "amount": 18.35, "day": 5 },
+    { "id": 5, "name": "Seguro Ocidental — Saúde", "category": "Seguros", "amount": 17.18, "day": 5 },
+    { "id": 6, "name": "Vodafone", "category": "Subscrições", "amount": 15, "day": 10 },
+    { "id": 7, "name": "Ginásio", "category": "Saúde", "amount": 25, "day": 1 },
+    { "id": 8, "name": "Deco Proteste", "category": "Subscrições", "amount": 8.6, "day": 12 },
+    { "id": 9, "name": "MyHome", "category": "Casa", "amount": null, "day": 20 }
+  ],
+  "nextBillId": 10,
+  "creditCards": [
+    {
+      "id": 1,
+      "name": "WiZink",
+      "limit": 3500,
+      "used": 1472.08,
+      "financedItems": [
+        { "id": 1, "desc": "iPhone (crédito)", "total": 1026.99, "remaining": 445.09 }
+      ]
+    }
+  ],
+  "nextCardId": 2,
+  "nextFinancedId": 2,
+  "investments": [
+    { "id": "trading", "name": "Trading (Ações/ETFs)", "balance": 0, "contributions": [] },
+    {
+      "id": "ppr",
+      "name": "PPR — Plano Poupança Reforma",
+      "balance": 1250,
+      "contributions": [
+        { "date": "2024-01-01", "amount": 1250, "note": "Valor inicial (do histórico)" }
+      ]
+    }
+  ],
+  "savingsGoals": [
+    { "id": 1, "name": "Fundo de Emergência", "target": 5000, "current": 0 }
+  ],
+  "nextGoalId": 2,
+  "house": {
+    "apartmentValue": 172500,
+    "entrada": 37500,
+    "financiado": 135000,
+    "documentacao": 2300,
+    "sinal": 17250,
+    "fundingSources": [
+      { "label": "Sinal", "value": 17250 },
+      { "label": "Poupança própria", "value": 32750 },
+      { "label": "Empréstimo de Deny e Mauricio", "value": 30757.19 },
+      { "label": "Contribuição dos pais", "value": 6300 }
+    ],
+    "loan": {
+      "credor": "Deny e Mauricio",
+      "total": 30757.19,
+      "currentRemaining": 18157.19,
+      "transfers": [
+        { "date": "2024-11-12", "amount": 9604 },
+        { "date": "2024-11-13", "amount": 4815 },
+        { "date": "2024-11-14", "amount": 4835 },
+        { "date": "2024-11-18", "amount": 9667.19 },
+        { "date": "2024-11-21", "amount": 4836 }
+      ],
+      "schedule": [
+        { "year": 2025, "paid": 3600, "remaining": 27157.19 },
+        { "year": 2026, "paid": 9000, "remaining": 18157.19 },
+        { "year": 2027, "paid": 12600, "remaining": 5557.19 },
+        { "year": 2028, "paid": 5400, "remaining": 157.19 }
+      ]
+    },
+    "bankComparison": {
+      "variable": { "avgMonthly": 296.25, "total120": 35550 },
+      "fixed": { "avgMonthly": 295.03, "total120": 35403.6 }
+    },
+    "roomRental": [
+      { "rooms": 4, "price": 320, "costPerPerson": 52.5 },
+      { "rooms": 5, "price": 300, "costPerPerson": 50 }
+    ]
+  },
+  "settings": { "currency": "EUR" }
+}
