@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 686.47
+      "balance": 2436.01
     },
     {
       "id": 2,
@@ -54,11 +54,11 @@
     {
       "id": 3,
       "desc": "Subsídio Ferias",
-      "kind": "expense",
+      "kind": "income",
       "date": "2026-07-19",
       "category": "Outros",
       "accountId": 1,
-      "amount": -874.77,
+      "amount": 874.77,
       "fromRef": null,
       "toRef": null,
       "applied": true
