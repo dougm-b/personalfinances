@@ -362,10 +362,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <!-- ══════════ CASA ══════════ -->
     <div class="screen" id="house-screen">
       <div class="card">
-        <div class="card-title">Apartamento</div>
-        <div id="house-summary"></div>
-      </div>
-      <div class="card">
         <div class="card-title">Empréstimo a Deny e Mauricio</div>
         <div id="house-loan-detail"></div>
       </div>
@@ -379,13 +375,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <div id="house-transfers"></div>
       </div>
       <div class="card">
-        <div class="card-title">Comparação: Financiamento Bancário (referência)</div>
-        <div id="house-bank-comparison"></div>
-      </div>
-      <div class="card">
         <div class="card-title">Renda de Quartos <button class="add-btn" onclick="openRoomModal()">+ Quarto</button></div>
         <div id="house-rooms"></div>
-        <div class="note-box">Toca num quarto para editar o nome/renda e registar ajustes pontuais num mês (ex: inquilino pagou dois meses juntos, ou não pagou este mês).</div>
+        <div class="note-box">Toca num quarto para editar o nome/renda e registar ajustes pontuais num mês (ex: inquilino pagou dois meses juntos, ou não pagou este mês). O total do mês aparece na aba Fixas como receita "Renda dos Quartos".</div>
       </div>
     </div>
 
@@ -585,7 +577,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">De (mês)</label><input class="form-input" id="plan-from" type="month"/></div>
       <div class="form-group"><label class="form-label">Até (mês)</label><input class="form-input" id="plan-to" type="month"/></div>
     </div>
+    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="plan-account"></select></div>
     <button class="btn-primary" onclick="savePlan()">Guardar</button>
+    <div class="note-box">Em cada mês do período, é criada automaticamente a transação do pagamento e o valor é debitado desta conta.</div>
     <button class="btn-danger" id="plan-delete-btn" onclick="deletePlan()" style="display:none">Eliminar</button>
   </div>
 </div>
@@ -743,6 +737,68 @@ function addMonthsKey(m, n){
   for (let i = 0; i < n; i++) x = nextMonth(x);
   return x;
 }
+// total esperado da renda dos quartos num dado mês (rendas base + ajustes)
+function roomsMonthlyTotal(mk){
+  return round2((state.house.rooms||[]).reduce((s,r) =>
+    s + (r.rent||0) + (r.adjustments||[]).filter(a => a.month === mk).reduce((x,a) => x + a.amount, 0), 0));
+}
+// mantém nas Fixas uma receita "Renda dos Quartos" sincronizada com a aba Casa
+function ensureRoomsBill(){
+  const total = roomsMonthlyTotal(todayKey().slice(0,7));
+  let b = state.recurringBills.find(x => x.auto === 'rooms');
+  if (!b) {
+    state.nextBillId = state.nextBillId || 1;
+    state.recurringBills.push({ id: state.nextBillId++, name:'Renda dos Quartos', category:'Renda Recebida',
+      kind:'income', day:5, auto:'rooms', accountId:null, amount: total });
+  } else {
+    b.amount = total;
+    b.kind = 'income';
+  }
+}
+// cria as transações dos débitos mensais do empréstimo nos meses decorridos,
+// debitando a conta configurada em cada débito
+function runLoanPlanCharges(){
+  const loan = state.house.loan;
+  const cur = todayKey().slice(0,7);
+  let changed = false;
+  (loan.paymentPlans||[]).forEach(p => {
+    if (!p.chargedUntil) { p.chargedUntil = cur; changed = true; return; } // nunca cobrar retroativamente ao ser criado/migrado
+    if (!p.accountId) { if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; } return; }
+    let m = p.chargedUntil;
+    while (m < cur) {
+      m = nextMonth(m);
+      if (p.from <= m && m <= p.to) {
+        const t = { id: state.nextTxId++,
+          desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
+          kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
+          category:'Casa', accountId: p.accountId, applied:true };
+        state.transactions.push(t);
+        applyTxBalance(t, 1);
+        changed = true;
+      }
+    }
+    if (p.chargedUntil !== cur) { p.chargedUntil = cur; changed = true; }
+  });
+  return changed;
+}
+// projeção do fim do empréstimo mantendo os débitos configurados
+// (quando os períodos acabam, assume que o último valor se mantém)
+function projectLoanPayoff(){
+  let rem = computeLoanRemaining();
+  if (rem <= 0) return { months: 0 };
+  const plans = (state.house.loan.paymentPlans||[]).slice().sort((a,b) => a.from.localeCompare(b.from));
+  if (!plans.length) return null;
+  const lastAmt = plans[plans.length-1].amount;
+  let m = todayKey().slice(0,7), months = 0;
+  while (rem > 0 && months < 600) {
+    m = nextMonth(m); months++;
+    const p = plans.find(x => x.from <= m && m <= x.to);
+    const amt = p ? p.amount : lastAmt;
+    if (!amt || amt <= 0) return null;
+    rem -= amt;
+  }
+  return { months, end: m, monthly: lastAmt };
+}
 function fillAccountSelect(el, selectedId){
   el.innerHTML = state.accounts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
   const def = state.accounts.find(a => a.type === 'À ordem');
@@ -883,6 +939,10 @@ function migrateState(loaded){
   }
   return s;
 }
+// sincronizações derivadas do estado — correm após cada load
+function syncDerived(){
+  ensureRoomsBill();
+}
 
 // ══════════════════════════════════════════
 // TOKEN SETUP
@@ -1000,6 +1060,7 @@ async function loadFromGitHub(opts){
       return false;
     }
     state = migrateState(content);
+    syncDerived();
     cacheState();
     setSyncStatus('ok', 'sincronizado');
     renderAll();
@@ -1009,6 +1070,7 @@ async function loadFromGitHub(opts){
       const cached = loadCachedState();
       if (cached) {
         state = cached;
+        syncDerived();
         setSyncStatus('error', 'offline — dados locais');
         showToast('⚠️ Sem ligação ao GitHub — a usar os dados guardados neste browser');
       } else {
@@ -1455,7 +1517,7 @@ function renderBills(){
     return `
     <div class="row" onclick="openBillModal(${b.id})">
       <div class="row-emoji">${CATEGORY_EMOJI[b.category]||'📄'}</div>
-      <div class="row-info"><div class="row-name">${esc(b.name)}</div><div class="row-detail">dia ${b.day} · ${esc(b.category)} · ${isInc?'credita':'debita'}</div></div>
+      <div class="row-info"><div class="row-name">${esc(b.name)}</div><div class="row-detail">dia ${b.day} · ${esc(b.category)} · ${isInc?'credita':'debita'}${b.auto==='rooms'?' · sincronizada com a Casa':''}</div></div>
       <div class="row-val ${isInc?'pos':''}">${b.amount!=null ? (isInc?'+':'') + fmtEUR(b.amount) : 'variável'}</div>
     </div>`;
   }).join('') : '<div class="empty-state"><div class="icon">📅</div><p>Sem movimentos fixos</p></div>';
@@ -1464,6 +1526,8 @@ function openBillModal(id){
   populateCategorySelect(document.getElementById('bill-category'), false);
   const b0 = id ? state.recurringBills.find(x=>x.id===id) : null;
   fillAccountSelect(document.getElementById('bill-account'), b0 ? b0.accountId : null);
+  // a receita "Renda dos Quartos" e sincronizada com a aba Casa - valor nao editavel aqui
+  document.getElementById('bill-amount').disabled = !!(b0 && b0.auto === 'rooms');
   document.getElementById('bill-id').value = id||'';
   document.getElementById('bill-modal-title').textContent = id ? 'Editar Movimento Fixo' : 'Novo Movimento Fixo';
   document.getElementById('bill-delete-btn').style.display = id ? 'block' : 'none';
@@ -1493,9 +1557,13 @@ function saveBill(){
     amount: amountVal==='' ? null : parseFloat(amountVal),
     kind: document.getElementById('bill-kind').value,
     accountId: parseInt(document.getElementById('bill-account').value)||null };
-  if (id) { Object.assign(state.recurringBills.find(b=>b.id==id), data); }
+  if (id) {
+    const b = state.recurringBills.find(x=>x.id==id);
+    if (b.auto === 'rooms') { data.amount = b.amount; data.kind = 'income'; } // valor vem da aba Casa
+    Object.assign(b, data);
+  }
   else { state.recurringBills.push({ id: state.nextBillId++, ...data }); }
-  closeModal('bill-modal'); save(); showToast('✅ Despesa fixa guardada');
+  closeModal('bill-modal'); save(); showToast('✅ Movimento fixo guardado');
 }
 function deleteBill(){
   const id = parseInt(document.getElementById('bill-id').value);
@@ -1849,14 +1917,15 @@ function saveLoanPayment(){
 }
 function openPlanModal(id){
   const loan = state.house.loan;
+  const p0 = id ? loan.paymentPlans.find(x=>x.id===id) : null;
+  fillAccountSelect(document.getElementById('plan-account'), p0 ? p0.accountId : null);
   document.getElementById('plan-id').value = id||'';
   document.getElementById('plan-modal-title').textContent = id ? 'Editar Débito Mensal' : 'Novo Débito Mensal';
   document.getElementById('plan-delete-btn').style.display = id ? 'block' : 'none';
   if (id) {
-    const p = loan.paymentPlans.find(x=>x.id===id);
-    document.getElementById('plan-amount').value = p.amount;
-    document.getElementById('plan-from').value = p.from;
-    document.getElementById('plan-to').value = p.to;
+    document.getElementById('plan-amount').value = p0.amount;
+    document.getElementById('plan-from').value = p0.from;
+    document.getElementById('plan-to').value = p0.to;
   } else {
     document.getElementById('plan-amount').value = '';
     document.getElementById('plan-from').value = todayKey().slice(0,7);
@@ -1870,11 +1939,15 @@ function savePlan(){
   const amount = parseFloat(document.getElementById('plan-amount').value);
   const from = document.getElementById('plan-from').value;
   const to = document.getElementById('plan-to').value;
+  const accountId = parseInt(document.getElementById('plan-account').value)||null;
   if (!amount || !from || !to) { showToast('Preenche valor e período'); return; }
   if (to < from) { showToast('O mês final tem de ser depois do inicial'); return; }
   loan.paymentPlans = loan.paymentPlans || [];
-  if (id) { Object.assign(loan.paymentPlans.find(p=>p.id==id), { amount, from, to }); }
-  else { loan.nextPlanId = loan.nextPlanId || 1; loan.paymentPlans.push({ id: loan.nextPlanId++, amount, from, to }); }
+  if (id) { Object.assign(loan.paymentPlans.find(p=>p.id==id), { amount, from, to, accountId }); }
+  else {
+    loan.nextPlanId = loan.nextPlanId || 1;
+    loan.paymentPlans.push({ id: loan.nextPlanId++, amount, from, to, accountId, chargedUntil: todayKey().slice(0,7) });
+  }
   closeModal('plan-modal'); save(); showToast('✅ Débito mensal guardado');
 }
 function deletePlan(){
@@ -1884,14 +1957,6 @@ function deletePlan(){
 }
 function renderHouse(){
   const h = state.house;
-  document.getElementById('house-summary').innerHTML = `
-    <div class="stat-grid">
-      <div class="stat-box"><div class="l">Valor do Apartamento</div><div class="v">${fmtEUR(h.apartmentValue)}</div></div>
-      <div class="stat-box"><div class="l">Valor Financiado (banco)</div><div class="v">${fmtEUR(h.financiado)}</div></div>
-      <div class="stat-box"><div class="l">Entrada</div><div class="v">${fmtEUR(h.entrada)}</div></div>
-      <div class="stat-box"><div class="l">Sinal</div><div class="v">${fmtEUR(h.sinal)}</div></div>
-    </div>`;
-
   const loan = h.loan;
   document.getElementById('house-loan-detail').innerHTML = `
     <div class="stat-grid">
@@ -1905,9 +1970,11 @@ function renderHouse(){
   const plans = (loan.paymentPlans||[]).slice().sort((a,b)=>a.from.localeCompare(b.from));
   document.getElementById('house-plans').innerHTML = plans.length ? plans.map(p => {
     const status = curM < p.from ? ['badge-blue','futuro'] : curM > p.to ? ['badge-caution','terminado'] : ['badge-ok','ativo'];
+    const acc = state.accounts.find(a => a.id === p.accountId);
     return `<div class="row" onclick="openPlanModal(${p.id})">
       <div class="row-emoji">📆</div>
-      <div class="row-info"><div class="row-name">${fmtEUR(p.amount)}/mês</div><div class="row-detail">${fmtMonth(p.from)} → ${fmtMonth(p.to)}</div></div>
+      <div class="row-info"><div class="row-name">${fmtEUR(p.amount)}/mês</div>
+        <div class="row-detail">${fmtMonth(p.from)} → ${fmtMonth(p.to)} · ${acc ? 'debita ' + esc(acc.name) : '⚠ define a conta a debitar'}</div></div>
       <span class="stat-badge ${status[0]}">${status[1]}</span>
     </div>`;
   }).join('') : '<div class="empty-state" style="padding:14px"><p>Sem débito mensal configurado</p></div>';
@@ -1918,13 +1985,6 @@ function renderHouse(){
       <div class="row-emoji">💶</div>
       <div class="row-info"><div class="row-name">Total recebido</div><div class="row-detail">toca para ver o detalhe do recebido, do pago e a estimativa de fim</div></div>
       <div class="row-val">${fmtEUR(totalReceived)}</div>
-    </div>`;
-
-  const bc = h.bankComparison;
-  document.getElementById('house-bank-comparison').innerHTML = `
-    <div class="stat-grid">
-      <div class="stat-box"><div class="l">Taxa Variável (Euribor 12m)</div><div class="v">${fmtEUR(bc.variable.avgMonthly)}/mês</div><div class="row-detail">total 120 meses: ${fmtEUR(bc.variable.total120)}</div></div>
-      <div class="stat-box"><div class="l">Taxa Fixa (10 anos)</div><div class="v">${fmtEUR(bc.fixed.avgMonthly)}/mês</div><div class="row-detail">total 120 meses: ${fmtEUR(bc.fixed.total120)}</div></div>
     </div>`;
 
   renderRooms();
@@ -1939,27 +1999,30 @@ function openLoanHistory(){
     .filter(t => t.kind === 'expense' && (t.desc||'').startsWith('Pagamento empréstimo'))
     .sort((a,b) => b.date.localeCompare(a.date));
   const curM = todayKey().slice(0,7);
-  let lastPay = payTxs.length ? Math.abs(payTxs[0].amount) : 0;
-  if (!lastPay) {
-    // sem pagamentos registados: usa o débito mensal ativo, ou o mais recente
-    const plans = (loan.paymentPlans||[]).slice().sort((a,b) => b.to.localeCompare(a.to));
-    const ap = plans.find(p => p.from <= curM && curM <= p.to) || plans[0];
-    lastPay = ap ? ap.amount : 0;
-  }
   let estimate;
   if (rem <= 0) estimate = 'Empréstimo pago na totalidade 🎉';
-  else if (lastPay > 0) {
-    const months = Math.ceil(rem / lastPay);
-    estimate = `Mantendo ${fmtEUR(lastPay)}/mês (último valor pago), terminas de pagar em ≈ ${fmtMonth(addMonthsKey(curM, months))} (${months} ${months===1?'mês':'meses'}).`;
-  } else {
-    estimate = 'Regista um pagamento ou configura um débito mensal para calcular a estimativa de fim.';
+  else {
+    // primeiro: manter o débito mensal configurado; senão, o último pagamento registado
+    const proj = projectLoanPayoff();
+    if (proj && proj.months > 0) {
+      estimate = `Mantendo o débito mensal configurado (${fmtEUR(proj.monthly)}/mês), terminas de pagar em ≈ ${fmtMonth(proj.end)} (${proj.months} ${proj.months===1?'mês':'meses'}).`;
+    } else if (payTxs.length) {
+      const lastPay = Math.abs(payTxs[0].amount);
+      const months = Math.ceil(rem / lastPay);
+      estimate = `Mantendo ${fmtEUR(lastPay)}/mês (último valor pago), terminas de pagar em ≈ ${fmtMonth(addMonthsKey(curM, months))} (${months} ${months===1?'mês':'meses'}).`;
+    } else {
+      estimate = 'Regista um pagamento ou configura um débito mensal para calcular a estimativa de fim.';
+    }
   }
+  const sinceCorrection = round2((loan.baseRemaining != null ? loan.baseRemaining : loan.total) - rem);
+  const activePlan = (loan.paymentPlans||[]).find(p => p.from <= curM && curM <= p.to);
+  const monthlyNow = activePlan ? activePlan.amount : (payTxs.length ? Math.abs(payTxs[0].amount) : 0);
   document.getElementById('loan-history-body').innerHTML = `
     <div class="stat-grid" style="margin-bottom:12px">
       <div class="stat-box"><div class="l">Recebido</div><div class="v">${fmtEUR(totalReceived)}</div></div>
       <div class="stat-box"><div class="l">Pago até agora</div><div class="v" style="color:var(--good)">${fmtEUR(totalPaid)}</div></div>
       <div class="stat-box"><div class="l">Em dívida</div><div class="v" style="color:var(--warn)">${fmtEUR(rem)}</div></div>
-      <div class="stat-box"><div class="l">Último pagamento</div><div class="v">${lastPay ? fmtEUR(lastPay) : '—'}</div></div>
+      <div class="stat-box"><div class="l">Débito mensal atual</div><div class="v">${monthlyNow ? fmtEUR(monthlyNow) : '—'}</div></div>
     </div>
     <div class="note-box" style="margin-bottom:12px">${estimate}</div>
     <div class="form-label">Transferências recebidas:</div>
@@ -1968,12 +2031,19 @@ function openLoanHistory(){
         <div class="tl-info"><div class="t">${esc(t.label || ('Transferência de ' + loan.credor))}</div><div class="s">${t.date}</div></div>
         <div class="tl-val"${t.amount<0?' style="color:var(--warn)"':''}>${fmtEUR(t.amount)}</div>
       </div>`).join('')}</div>
-    <div class="form-label" style="margin-top:12px">Pagamentos registados:</div>
-    ${payTxs.length ? `<div class="timeline">${payTxs.map(t => `
+    <div class="form-label" style="margin-top:12px">Montantes pagos:</div>
+    ${sinceCorrection > 0 ? `<div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
+      <div class="tl-info"><div class="t">Débitos mensais desde a última correção do saldo</div><div class="s">desde ${fmtMonth(loan.baseMonth||curM)}</div></div>
+      <div class="tl-val">${fmtEUR(sinceCorrection)}</div></div>` : ''}
+    ${totalPaid - sinceCorrection > 0.005 ? `<div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
+      <div class="tl-info"><div class="t">Pago antes da última correção do saldo</div><div class="s">já refletido no acerto de ${fmtMonth(loan.baseMonth||curM)}</div></div>
+      <div class="tl-val">${fmtEUR(round2(totalPaid - sinceCorrection))}</div></div>` : ''}
+    ${payTxs.length ? `<div class="form-label" style="margin-top:12px">Transações de pagamento (detalhe):</div>
+    <div class="timeline">${payTxs.map(t => `
       <div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
         <div class="tl-info"><div class="t">${esc(t.desc)}</div><div class="s">${t.date}</div></div>
         <div class="tl-val">${fmtEUR(Math.abs(t.amount))}</div>
-      </div>`).join('')}</div>` : '<div class="row-detail">Nenhum pagamento registado nas Transações (os débitos mensais configurados também abatem no saldo).</div>'}`;
+      </div>`).join('')}</div>` : (totalPaid <= 0 ? '<div class="row-detail">Ainda sem pagamentos.</div>' : '')}`;
   document.getElementById('loan-history-modal').classList.add('open');
 }
 
@@ -2029,12 +2099,12 @@ function saveRoom(){
   const h = state.house;
   if (id) { Object.assign(h.rooms.find(r=>r.id==id), { name, rent }); }
   else { h.nextRoomId = h.nextRoomId || 1; h.rooms.push({ id: h.nextRoomId++, name, rent, adjustments:[] }); }
-  closeModal('room-modal'); save(); showToast('✅ Quarto guardado');
+  ensureRoomsBill(); closeModal('room-modal'); save(); showToast('✅ Quarto guardado');
 }
 function deleteRoom(){
   const id = parseInt(document.getElementById('room-id').value);
   state.house.rooms = state.house.rooms.filter(r=>r.id!==id);
-  closeModal('room-modal'); save(); showToast('🗑️ Quarto eliminado');
+  ensureRoomsBill(); closeModal('room-modal'); save(); showToast('🗑️ Quarto eliminado');
 }
 function openRoomAdjModal(adjId){
   const roomId = parseInt(document.getElementById('room-id').value);
@@ -2069,7 +2139,7 @@ function saveRoomAdj(){
   const h = state.house;
   if (adjId) { Object.assign(r.adjustments.find(a=>a.id==adjId), { month, amount, note }); }
   else { h.nextRoomAdjId = h.nextRoomAdjId || 1; r.adjustments.push({ id: h.nextRoomAdjId++, month, amount, note }); }
-  closeModal('room-adj-modal'); save(); showToast('✅ Ajuste guardado');
+  ensureRoomsBill(); closeModal('room-adj-modal'); save(); showToast('✅ Ajuste guardado');
   openRoomModal(roomId);
 }
 function deleteRoomAdj(){
@@ -2077,7 +2147,7 @@ function deleteRoomAdj(){
   const adjId = parseInt(document.getElementById('adj-id').value);
   const r = state.house.rooms.find(x=>x.id===roomId);
   r.adjustments = (r.adjustments||[]).filter(a=>a.id!==adjId);
-  closeModal('room-adj-modal'); save(); showToast('🗑️ Ajuste eliminado');
+  ensureRoomsBill(); closeModal('room-adj-modal'); save(); showToast('🗑️ Ajuste eliminado');
   openRoomModal(roomId);
 }
 
@@ -2116,9 +2186,10 @@ async function initApp(){
   // rede), arranca com os dados locais em cache em vez dos do GitHub
   if (dirty) {
     const cached = loadCachedState();
-    if (cached) state = cached; else setDirty(false);
+    if (cached) { state = cached; syncDerived(); } else setDirty(false);
   }
   await loadFromGitHub(); // obtém o sha; nunca sobrepõe alterações locais pendentes
+  if (runLoanPlanCharges()) { setDirty(true); cacheState(); } // débitos mensais do empréstimo vencidos
   if (dirty) pushToGitHub(); // tenta gravar já o que ficou pendente
   renderAll();
   startAutoSync();
