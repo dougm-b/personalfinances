@@ -114,9 +114,10 @@
       "id": 9,
       "name": "MyHome",
       "category": "Casa",
-      "amount": null,
+      "amount": 798.99,
       "day": 20,
-      "kind": "expense"
+      "kind": "income",
+      "accountId": 1
     }
   ],
   "nextBillId": 10,
