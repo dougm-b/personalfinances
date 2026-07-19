@@ -1,23 +1,109 @@
 {
   "accounts": [
-    { "id": 1, "name": "Millennium bcp", "type": "À ordem", "balance": 222.14 },
-    { "id": 2, "name": "ActivoBank", "type": "Poupança", "balance": 49.27 },
-    { "id": 3, "name": "Revolut", "type": "À ordem", "balance": 0 },
-    { "id": 4, "name": "Reservas (poupança automática)", "type": "Poupança automática", "balance": 1265.61 }
+    {
+      "id": 1,
+      "name": "Millennium bcp",
+      "type": "À ordem",
+      "balance": -277.86
+    },
+    {
+      "id": 2,
+      "name": "ActivoBank",
+      "type": "À ordem",
+      "balance": 49.27
+    },
+    {
+      "id": 3,
+      "name": "Revolut",
+      "type": "À ordem",
+      "balance": 0
+    },
+    {
+      "id": 4,
+      "name": "Reservas (poupança automática)",
+      "type": "Poupança automática",
+      "balance": 1265.61
+    }
   ],
   "nextAccountId": 5,
-  "transactions": [],
-  "nextTxId": 1,
+  "transactions": [
+    {
+      "id": 1,
+      "desc": "Reforço Trading (Ações/ETFs)",
+      "kind": "transfer",
+      "date": "2026-07-19",
+      "amount": 500,
+      "fromRef": "acc:1",
+      "toRef": "inv:trading",
+      "category": null,
+      "accountId": null
+    }
+  ],
+  "nextTxId": 2,
   "recurringBills": [
-    { "id": 1, "name": "Prestação / Renda da Casa", "category": "Casa", "amount": 580, "day": 8 },
-    { "id": 2, "name": "Água (Agere)", "category": "Utilidades", "amount": 41.65, "day": 20 },
-    { "id": 3, "name": "Eletricidade (Endesa)", "category": "Utilidades", "amount": null, "day": 15 },
-    { "id": 4, "name": "Seguro Ocidental — Casa", "category": "Seguros", "amount": 18.35, "day": 5 },
-    { "id": 5, "name": "Seguro Ocidental — Saúde", "category": "Seguros", "amount": 17.18, "day": 5 },
-    { "id": 6, "name": "Vodafone", "category": "Subscrições", "amount": 15, "day": 10 },
-    { "id": 7, "name": "Ginásio", "category": "Saúde", "amount": 25, "day": 1 },
-    { "id": 8, "name": "Deco Proteste", "category": "Subscrições", "amount": 8.6, "day": 12 },
-    { "id": 9, "name": "MyHome", "category": "Casa", "amount": null, "day": 20 }
+    {
+      "id": 1,
+      "name": "Prestação / Renda da Casa",
+      "category": "Casa",
+      "amount": 580,
+      "day": 8
+    },
+    {
+      "id": 2,
+      "name": "Água (Agere)",
+      "category": "Utilidades",
+      "amount": 41.65,
+      "day": 20
+    },
+    {
+      "id": 3,
+      "name": "Eletricidade (Endesa)",
+      "category": "Utilidades",
+      "amount": null,
+      "day": 15
+    },
+    {
+      "id": 4,
+      "name": "Seguro Ocidental — Casa",
+      "category": "Seguros",
+      "amount": 18.35,
+      "day": 5
+    },
+    {
+      "id": 5,
+      "name": "Seguro Ocidental — Saúde",
+      "category": "Seguros",
+      "amount": 17.18,
+      "day": 5
+    },
+    {
+      "id": 6,
+      "name": "Vodafone",
+      "category": "Subscrições",
+      "amount": 15,
+      "day": 10
+    },
+    {
+      "id": 7,
+      "name": "Ginásio",
+      "category": "Saúde",
+      "amount": 25,
+      "day": 1
+    },
+    {
+      "id": 8,
+      "name": "Deco Proteste",
+      "category": "Subscrições",
+      "amount": 8.6,
+      "day": 12
+    },
+    {
+      "id": 9,
+      "name": "MyHome",
+      "category": "Casa",
+      "amount": null,
+      "day": 20
+    }
   ],
   "nextBillId": 10,
   "creditCards": [
@@ -28,29 +114,69 @@
       "used": 1472.08,
       "monthlyDue": 0,
       "financedItems": [
-        { "id": 1, "desc": "iPhone (crédito)", "total": 1026.99, "remaining": 445.09, "installment": null }
+        {
+          "id": 1,
+          "desc": "iPhone (crédito)",
+          "total": 1026.99,
+          "remaining": 445.09,
+          "installment": null
+        }
       ]
     },
-    { "id": 2, "name": "Millennium bcp", "limit": 0, "used": 0, "monthlyDue": 0, "financedItems": [] },
-    { "id": 3, "name": "ActivoBank", "limit": 0, "used": 0, "monthlyDue": 0, "financedItems": [] }
+    {
+      "id": 2,
+      "name": "Millennium bcp",
+      "limit": 0,
+      "used": 0,
+      "monthlyDue": 0,
+      "financedItems": []
+    },
+    {
+      "id": 3,
+      "name": "ActivoBank",
+      "limit": 0,
+      "used": 0,
+      "monthlyDue": 0,
+      "financedItems": []
+    }
   ],
   "nextCardId": 4,
   "nextFinancedId": 2,
   "plannedTx": [],
   "nextPlannedId": 1,
   "investments": [
-    { "id": "trading", "name": "Trading (Ações/ETFs)", "balance": 0, "contributions": [] },
+    {
+      "id": "trading",
+      "name": "Trading (Ações/ETFs)",
+      "balance": 500,
+      "contributions": [
+        {
+          "date": "2026-07-19",
+          "amount": 500,
+          "note": ""
+        }
+      ]
+    },
     {
       "id": "ppr",
       "name": "PPR — Plano Poupança Reforma",
       "balance": 1250,
       "contributions": [
-        { "date": "2024-01-01", "amount": 1250, "note": "Valor inicial (do histórico)" }
+        {
+          "date": "2024-01-01",
+          "amount": 1250,
+          "note": "Valor inicial (do histórico)"
+        }
       ]
     }
   ],
   "savingsGoals": [
-    { "id": 1, "name": "Fundo de Emergência", "target": 5000, "current": 0 }
+    {
+      "id": 1,
+      "name": "Fundo de Emergência",
+      "target": 5000,
+      "current": 0
+    }
   ],
   "nextGoalId": 2,
   "house": {
@@ -64,30 +190,82 @@
       "baseRemaining": 30757.19,
       "baseMonth": "2025-02",
       "paymentPlans": [
-        { "id": 1, "amount": 300, "from": "2025-03", "to": "2026-02" }
+        {
+          "id": 1,
+          "amount": 300,
+          "from": "2025-03",
+          "to": "2026-02"
+        }
       ],
       "nextPlanId": 2,
       "transfers": [
-        { "date": "2024-11-12", "amount": 9604 },
-        { "date": "2024-11-13", "amount": 4815 },
-        { "date": "2024-11-14", "amount": 4835 },
-        { "date": "2024-11-18", "amount": 9667.19 },
-        { "date": "2024-11-21", "amount": 4836 },
-        { "date": "2024-11-21", "amount": -3000, "label": "Dinheiro do Douglas (descontado do empréstimo)" }
+        {
+          "date": "2024-11-12",
+          "amount": 9604
+        },
+        {
+          "date": "2024-11-13",
+          "amount": 4815
+        },
+        {
+          "date": "2024-11-14",
+          "amount": 4835
+        },
+        {
+          "date": "2024-11-18",
+          "amount": 9667.19
+        },
+        {
+          "date": "2024-11-21",
+          "amount": 4836
+        },
+        {
+          "date": "2024-11-21",
+          "amount": -3000,
+          "label": "Dinheiro do Douglas (descontado do empréstimo)"
+        }
       ]
     },
     "bankComparison": {
-      "variable": { "avgMonthly": 296.25, "total120": 35550 },
-      "fixed": { "avgMonthly": 295.03, "total120": 35403.6 }
+      "variable": {
+        "avgMonthly": 296.25,
+        "total120": 35550
+      },
+      "fixed": {
+        "avgMonthly": 295.03,
+        "total120": 35403.6
+      }
     },
     "rooms": [
-      { "id": 1, "name": "Quarto 1", "rent": 320, "adjustments": [] },
-      { "id": 2, "name": "Quarto 2", "rent": 320, "adjustments": [] },
-      { "id": 3, "name": "Quarto 3", "rent": 320, "adjustments": [] },
-      { "id": 4, "name": "Quarto 4", "rent": 320, "adjustments": [] }
+      {
+        "id": 1,
+        "name": "Quarto 1",
+        "rent": 320,
+        "adjustments": []
+      },
+      {
+        "id": 2,
+        "name": "Quarto 2",
+        "rent": 320,
+        "adjustments": []
+      },
+      {
+        "id": 3,
+        "name": "Quarto 3",
+        "rent": 320,
+        "adjustments": []
+      },
+      {
+        "id": 4,
+        "name": "Quarto 4",
+        "rent": 320,
+        "adjustments": []
+      }
     ],
     "nextRoomId": 5,
     "nextRoomAdjId": 1
   },
-  "settings": { "currency": "EUR" }
+  "settings": {
+    "currency": "EUR"
+  }
 }
