@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": -1012.24
+      "balance": -1163.27
     },
     {
       "id": 2,
@@ -123,9 +123,19 @@
       "category": "Subscrições",
       "accountId": 1,
       "applied": true
+    },
+    {
+      "id": 9,
+      "desc": "Eletricidade (Endesa)",
+      "kind": "expense",
+      "amount": -151.03,
+      "date": "2026-07-19",
+      "category": "Utilidades",
+      "accountId": 1,
+      "applied": true
     }
   ],
-  "nextTxId": 9,
+  "nextTxId": 10,
   "recurringBills": [
     {
       "id": 1,
