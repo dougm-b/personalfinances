@@ -137,3 +137,41 @@ function txRow(t){
   </div>`;
 }
 
+
+// detalhe das receitas/despesas do mês + sobra prevista na conta à ordem,
+// para ser fácil verificar a composição e apanhar duplicações
+function openMonthBalance(){
+  const M = todayKey().slice(0,7);
+  const today = todayKey();
+  const txs = state.transactions.filter(t => monthKey(t.date) === M && t.kind !== 'transfer')
+    .sort((a,b) => a.date.localeCompare(b.date));
+  const txRowMini = t => `<div class="tl-item"><div class="tl-dot" style="background:${t.amount>=0?'var(--good)':'var(--red)'}"></div>
+    <div class="tl-info"><div class="t">${esc(t.desc)}</div><div class="s">${t.date}${t.applied===false?' · não mexeu no saldo':''}</div></div>
+    <div class="tl-val" style="color:${t.amount>=0?'var(--good)':'var(--red)'}">${t.amount>=0?'+':''}${fmtEUR(t.amount)}</div></div>`;
+  const incTx = txs.filter(t => t.kind === 'income');
+  const expTx = txs.filter(t => t.kind === 'expense');
+  // fixas do mês ainda por liquidar (pendentes)
+  const pending = fixasItemsForMonth(M).filter(it => it.amount != null && !settlementOf(it.key, M)
+    && (M + '-' + String(it.day).padStart(2,'0')) >= today);
+  const pendInc = pending.filter(i => i.kind === 'income');
+  const pendExp = pending.filter(i => i.kind !== 'income');
+  const pendRowMini = it => `<div class="tl-item"><div class="tl-dot" style="background:var(--txt3)"></div>
+    <div class="tl-info"><div class="t">${esc(it.name)}</div><div class="s">previsto dia ${it.day} (fixa por liquidar)</div></div>
+    <div class="tl-val">${it.kind==='income'?'+':'-'}${fmtEUR(it.amount)}</div></div>`;
+  const sum = arr => arr.reduce((a,x) => a + Math.abs(x.amount), 0);
+  const ordem = state.accounts.filter(a => a.type === 'À ordem').reduce((s,a) => s + (a.balance||0), 0);
+  const leftover = round2(ordem + sum(pendInc) - sum(pendExp));
+  document.getElementById('mb-body').innerHTML = `
+    <div class="form-label">Receitas registadas (${fmtEUR(sum(incTx))}):</div>
+    ${incTx.length ? '<div class="timeline">'+incTx.map(txRowMini).join('')+'</div>' : '<div class="row-detail">nenhuma</div>'}
+    ${pendInc.length ? '<div class="form-label" style="margin-top:8px">Receitas fixas por liquidar ('+fmtEUR(sum(pendInc))+'):</div><div class="timeline">'+pendInc.map(pendRowMini).join('')+'</div>' : ''}
+    <div class="form-label" style="margin-top:12px">Despesas registadas (${fmtEUR(sum(expTx))}):</div>
+    ${expTx.length ? '<div class="timeline">'+expTx.map(txRowMini).join('')+'</div>' : '<div class="row-detail">nenhuma</div>'}
+    ${pendExp.length ? '<div class="form-label" style="margin-top:8px">Despesas fixas por liquidar ('+fmtEUR(sum(pendExp))+'):</div><div class="timeline">'+pendExp.map(pendRowMini).join('')+'</div>' : ''}
+    <div class="stat-grid" style="margin-top:14px">
+      <div class="stat-box"><div class="l">À ordem agora</div><div class="v">${fmtEUR(ordem)}</div></div>
+      <div class="stat-box"><div class="l">Sobra prevista no fim de ${fmtMonth(M)}</div><div class="v" style="color:${leftover>=0?'var(--good)':'var(--red)'}">${fmtEUR(leftover)}</div></div>
+    </div>
+    <div class="note-box">Sobra = saldo à ordem atual + receitas fixas por liquidar − despesas fixas por liquidar deste mês.</div>`;
+  document.getElementById('month-balance-modal').classList.add('open');
+}

@@ -24,8 +24,33 @@
       <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
     </div>
     <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">1º mês da prestação</label><input class="form-input" id="fin-start" type="month"/></div>
+      <div class="form-group"><label class="form-label">Nº de prestações</label><input class="form-input" id="fin-months" type="number" min="1" placeholder="ex: 24"/></div>
+    </div>
     <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
     <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
   </div>
 </div>
 
+
+<div class="modal-overlay" id="card-detail-modal">
+  <div class="modal">
+    <h3><span id="cd-title">Cartão</span><button class="modal-close" onclick="closeModal('card-detail-modal')">✕</button></h3>
+    <div id="cd-body"></div>
+    <button class="btn-primary" id="cd-add-fin">+ Compra a prestações</button>
+    <button class="btn-secondary" id="cd-add-buy">+ Compra avulsa (aumenta o utilizado)</button>
+    <button class="btn-secondary" id="cd-add-pay">− Pagamento avulso (reduz o utilizado)</button>
+    <button class="btn-secondary" id="cd-edit">✎ Editar cartão (nome, limite, utilizado)</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="card-adj-modal">
+  <div class="modal">
+    <h3><span id="ca-title">Movimento</span><button class="modal-close" onclick="closeModal('card-adj-modal')">✕</button></h3>
+    <input type="hidden" id="ca-card-id"/><input type="hidden" id="ca-sign"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="ca-desc" placeholder="Ex: compra supermercado / pagamento da fatura"/></div>
+    <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="ca-amount" type="number" step="0.01" min="0"/></div>
+    <button class="btn-primary" onclick="saveCardAdj()">Guardar</button>
+  </div>
+</div>

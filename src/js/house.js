@@ -224,11 +224,13 @@ function openLoanHistory(){
       <div class="stat-box"><div class="l">Débito mensal atual</div><div class="v">${monthlyNow ? fmtEUR(monthlyNow) : '—'}</div></div>
     </div>
     <div class="note-box" style="margin-bottom:12px">${estimate}</div>
-    <div class="form-label">Transferências recebidas:</div>
-    <div class="timeline">${loan.transfers.map(t => `
+    <button class="btn-secondary" onclick="closeModal('loan-history-modal');openHouseRemainingModal()">✎ Corrigir saldo em dívida manualmente</button>
+    <div class="form-label" style="margin-top:12px">Transferências recebidas (toca em 🗑 para apagar):</div>
+    <div class="timeline">${loan.transfers.map((t,i) => `
       <div class="tl-item"><div class="tl-dot"${t.amount<0?' style="background:var(--warn)"':''}></div>
         <div class="tl-info"><div class="t">${esc(t.label || ('Transferência de ' + loan.credor))}</div><div class="s">${t.date}</div></div>
         <div class="tl-val"${t.amount<0?' style="color:var(--warn)"':''}>${fmtEUR(t.amount)}</div>
+        <button class="mg-icon-btn" style="background:var(--g3);border:none;color:var(--txt2);border-radius:50%;width:24px;height:24px;cursor:pointer;flex-shrink:0" onclick="deleteLoanTransfer(${i})">🗑</button>
       </div>`).join('')}</div>
     <div class="form-label" style="margin-top:12px">Montantes pagos:</div>
     ${sinceCorrection > 0 ? `<div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
@@ -350,3 +352,14 @@ function deleteRoomAdj(){
   openRoomModal(roomId);
 }
 
+
+// apagar uma transferência recebida (o total emprestado passa a ser a soma das restantes)
+function deleteLoanTransfer(i){
+  const loan = state.house.loan;
+  const t = loan.transfers[i];
+  if (!t) return;
+  loan.transfers.splice(i, 1);
+  loan.total = round2(loan.transfers.reduce((s,x) => s + x.amount, 0));
+  save(); showToast('🗑️ Transferência apagada — total emprestado: ' + fmtEUR(loan.total));
+  openLoanHistory();
+}

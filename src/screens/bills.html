@@ -1,17 +1,23 @@
     <!-- ══════════ FIXAS ══════════ -->
     <div class="screen" id="bills-screen">
+      <div class="sim-nav" style="margin:4px 0 10px">
+        <button class="sim-btn" onclick="billsShiftMonth(-1)">‹</button>
+        <span class="sim-label" id="bills-month-label">—</span>
+        <button class="sim-btn" onclick="billsShiftMonth(1)">›</button>
+      </div>
       <div class="card">
-        <div class="card-title">Fixas Mensais</div>
+        <div class="card-title">Fixas do Mês</div>
         <div class="stat-grid">
           <div class="stat-box"><div class="l">Despesas</div><div class="v neg" id="bills-total-exp">€0</div></div>
           <div class="stat-box"><div class="l">Receitas</div><div class="v pos" id="bills-total-inc">€0</div></div>
         </div>
       </div>
-      <div class="section-hdr"><h3>Movimentos Fixos</h3><button class="add-btn" onclick="openBillModal()">+ Novo</button></div>
-      <div id="bills-list"></div>
+      <div class="section-hdr"><h3>Passadas</h3><button class="add-btn" onclick="openBillModal()">+ Novo</button></div>
+      <div id="bills-past"></div>
+      <div class="section-hdr"><h3>Futuras</h3></div>
+      <div id="bills-future"></div>
 
       <div class="section-hdr"><h3>Movimentos Previstos</h3><button class="add-btn" onclick="openPlannedModal()">+ Novo</button></div>
       <div id="planned-list"></div>
       <div class="note-box">Receitas/despesas futuras (ex: ordenado a receber). Entram na projeção de saldo de cada conta (aba Contas) e podem ser editadas até serem confirmadas.</div>
     </div>
-

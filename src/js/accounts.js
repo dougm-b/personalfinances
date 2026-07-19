@@ -10,7 +10,7 @@ function renderAccounts(){
     return `
     <div class="row" onclick="openAccountDetail(${a.id})">
       <div class="row-emoji">🏦</div>
-      <div class="row-info"><div class="row-name">${esc(a.name)}</div><div class="row-detail">${esc(a.type)}${nPlanned ? ` · ${nPlanned} movimento${nPlanned>1?'s':''} previsto${nPlanned>1?'s':''}` : ''}</div></div>
+      <div class="row-info"><div class="row-name">${esc(a.name)}</div><div class="row-detail">${esc(a.type)}${a.updatedAt ? ' · atualizada ' + fmtDateTime(a.updatedAt) : ''}${nPlanned ? ` · ${nPlanned} previsto${nPlanned>1?'s':''}` : ''}</div></div>
       <div class="row-val">${fmtEUR(a.balance)}</div>
     </div>`;
   }).join('') : '<div class="empty-state"><div class="icon">🏦</div><p>Ainda sem contas</p></div>';
@@ -57,7 +57,9 @@ function saveAccount(){
   const id = document.getElementById('acc-id').value;
   const name = document.getElementById('acc-name').value.trim();
   if (!name) { showToast('Indica um nome'); return; }
-  const data = { name, type: document.getElementById('acc-type').value, balance: parseFloat(document.getElementById('acc-balance').value)||0 };
+  const data = { name, type: document.getElementById('acc-type').value,
+    balance: parseFloat(document.getElementById('acc-balance').value)||0,
+    updatedAt: Date.now() }; // atualização manual: passa a ser a verdade — transações anteriores deixam de mexer neste saldo
   if (id) {
     Object.assign(state.accounts.find(a=>a.id==id), data);
   } else {

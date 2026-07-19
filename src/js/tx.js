@@ -69,7 +69,7 @@ function saveTx(){
     if (fromRef === toRef) { showToast('Origem e destino têm de ser diferentes'); return; }
     const desc = document.getElementById('tx-desc').value.trim() || 'Transferência';
     const data = { desc, kind:'transfer', date: document.getElementById('tx-date').value,
-      amount: Math.abs(amountAbs), fromRef, toRef, category:null, accountId:null };
+      amount: Math.abs(amountAbs), fromRef, toRef, category:null, accountId:null, ts: Date.now() };
     if (old) {
       if (old.kind === 'transfer') applyTransfer(old, -1); // reverter saldos da versão anterior
       Object.assign(old, data);
@@ -88,7 +88,7 @@ function saveTx(){
     desc, kind, date: document.getElementById('tx-date').value,
     category: document.getElementById('tx-category').value,
     accountId, amount: kind==='income' ? Math.abs(amountAbs) : -Math.abs(amountAbs),
-    fromRef:null, toRef:null, applied:true
+    fromRef:null, toRef:null, applied:true, ts: Date.now()
   };
   if (old) {
     if (old.kind === 'transfer') applyTransfer(old, -1); // deixou de ser transferência
@@ -107,6 +107,8 @@ function deleteTx(){
   if (t && t.kind === 'transfer') applyTransfer(t, -1);
   else if (t && t.applied) applyTxBalance(t, -1);
   state.transactions = state.transactions.filter(x=>x.id!==id);
+  // se era a transação de uma fixa liquidada, desbloqueia esse mês
+  Object.keys(state.billSettlements||{}).forEach(k => { if (state.billSettlements[k].txId === id) delete state.billSettlements[k]; });
   closeModal('tx-modal'); save(); showToast('🗑️ Transação eliminada');
 }
 

@@ -95,8 +95,21 @@ sempre.
 - **Renda dos quartos** (`house.rooms` + ajustes pontuais por mês) sincroniza
   para a fixa `auto:'rooms'` nas Fixas via `ensureRoomsBill` (chamada em
   `syncDerived` após cada load e ao editar quartos).
+- **Fixas por mês**: a aba tem um seletor de mês (`billsMonth`); os itens de
+  um mês vêm de `fixasItemsForMonth(M)` = fixas dentro do prazo (`from`/`to`
+  opcionais) + prestações dos cartões (`financedItems` com `installment`,
+  `startMonth`, `months`). Liquidações em `state.billSettlements`
+  (`'<key>|<YYYY-MM>': {txId}`) — bloqueiam pagamentos duplicados no mês e
+  riscam o item. O checkbox "liquidado" cria a transação com `applied:false`
+  (não mexe no saldo); o botão "Registar pagamento" cria com `applied:true`
+  (debita/credita). Apagar a transação em Transações limpa a liquidação.
+- **Atualização manual de conta**: `saveAccount` grava `updatedAt`;
+  transações com `ts` anterior a esse instante ficam supersedidas
+  (`txSuperseded`) e deixam de poder alterar o saldo dessa conta.
 - **Simulação do dashboard**: assume receitas/despesas do mês atual mantidas
-  + movimentos previstos (`plannedTx`) até à data alvo.
+  + movimentos previstos (`plannedTx`) até à data alvo. O modal "Balanço do
+  Mês" (clicar em Receitas/Despesas) mostra a composição detalhada e a sobra
+  prevista na conta à ordem.
 
 ## Depois de qualquer alteração
 

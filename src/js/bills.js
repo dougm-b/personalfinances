@@ -1,23 +1,87 @@
 // ══════════════════════════════════════════
 // DESPESAS FIXAS
 // ══════════════════════════════════════════
+let billsMonth = null; // mês selecionado na aba Fixas (YYYY-MM)
+function billsShiftMonth(d){
+  const cur = billsMonth || todayKey().slice(0,7);
+  let [y,m] = cur.split('-').map(Number);
+  m += d; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; }
+  billsMonth = y + '-' + String(m).padStart(2,'0');
+  renderBills();
+}
+// itens fixos ativos num dado mês: fixas dentro do prazo + prestações de cartão
+function fixasItemsForMonth(M){
+  const items = [];
+  state.recurringBills.forEach(b => {
+    if ((b.from || '0000-01') <= M && M <= (b.to || '9999-12'))
+      items.push({ key:'bill:'+b.id, name:b.name, day:b.day||1, amount:b.amount,
+        kind:b.kind==='income'?'income':'expense', category:b.category, accountId:b.accountId, bill:b });
+  });
+  state.creditCards.forEach(c => (c.financedItems||[]).forEach(f => {
+    if (!f.installment) return;
+    const start = f.startMonth || '0000-01';
+    const end = f.months ? addMonthsKey(start, f.months - 1) : '9999-12';
+    if (start <= M && M <= end)
+      items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day:1, amount:f.installment,
+        kind:'expense', category:'Cartão de Crédito', fin:f, card:c });
+  }));
+  return items.sort((a,b) => a.day - b.day);
+}
+function settlementOf(key, M){ return (state.billSettlements||{})[key+'|'+M]; }
+function billItemRow(it, M, isFuture){
+  const settled = settlementOf(it.key, M);
+  const isInc = it.kind === 'income';
+  const style = settled ? 'text-decoration:line-through;opacity:.55' : '';
+  const check = (!settled && isFuture)
+    ? `<input type="checkbox" onclick="event.stopPropagation();settleFixedItem('${it.key}','${M}')" title="Marcar como liquidado (não mexe no saldo da conta)" style="width:18px;height:18px;accent-color:var(--good)"/>`
+    : (settled ? '<span class="stat-badge badge-ok">liquidado</span>' : '');
+  const open = it.bill ? `openBillModal(${it.bill.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
+  return `<div class="row" onclick="${open}">
+    <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
+    <div class="row-info" style="${style}"><div class="row-name">${esc(it.name)}</div>
+      <div class="row-detail">dia ${it.day} · ${esc(it.category)} · ${isInc?'credita':'debita'}${it.bill&&it.bill.auto==='rooms'?' · sincronizada com a Casa':''}${it.fin?' · prestação do cartão':''}</div></div>
+    <div class="row-val ${isInc?'pos':''}" style="${style}">${it.amount!=null ? (isInc?'+':'') + fmtEUR(it.amount) : 'variável'}</div>
+    ${check}
+  </div>`;
+}
 function renderBills(){
-  const exp = state.recurringBills.filter(b=>b.kind!=='income').reduce((a,b)=>a+(b.amount||0),0);
-  const inc = state.recurringBills.filter(b=>b.kind==='income').reduce((a,b)=>a+(b.amount||0),0);
+  const M = billsMonth || todayKey().slice(0,7);
+  billsMonth = M;
+  document.getElementById('bills-month-label').textContent = fmtMonth(M);
+  const items = fixasItemsForMonth(M);
+  const exp = items.filter(i=>i.kind!=='income').reduce((a,i)=>a+(i.amount||0),0);
+  const inc = items.filter(i=>i.kind==='income').reduce((a,i)=>a+(i.amount||0),0);
   document.getElementById('bills-total-exp').textContent = fmtEUR(exp);
   document.getElementById('bills-total-inc').textContent = fmtEUR(inc);
-  const el = document.getElementById('bills-list');
-  const list = state.recurringBills.slice().sort((a,b)=>a.day-b.day);
-  el.innerHTML = list.length ? list.map(b => {
-    const isInc = b.kind === 'income';
-    return `
-    <div class="row" onclick="openBillModal(${b.id})">
-      <div class="row-emoji">${CATEGORY_EMOJI[b.category]||'📄'}</div>
-      <div class="row-info"><div class="row-name">${esc(b.name)}</div><div class="row-detail">dia ${b.day} · ${esc(b.category)} · ${isInc?'credita':'debita'}${b.auto==='rooms'?' · sincronizada com a Casa':''}</div></div>
-      <div class="row-val ${isInc?'pos':''}">${b.amount!=null ? (isInc?'+':'') + fmtEUR(b.amount) : 'variável'}</div>
-    </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">📅</div><p>Sem movimentos fixos</p></div>';
+  const today = todayKey();
+  const past = [], future = [];
+  items.forEach(it => {
+    const dk = M + '-' + String(it.day).padStart(2,'0');
+    (dk <= today ? past : future).push(it);
+  });
+  document.getElementById('bills-past').innerHTML = past.length
+    ? past.map(it => billItemRow(it, M, false)).join('')
+    : '<div class="empty-state" style="padding:10px"><p>Sem fixas passadas neste mês</p></div>';
+  document.getElementById('bills-future').innerHTML = future.length
+    ? future.map(it => billItemRow(it, M, true)).join('')
+    : '<div class="empty-state" style="padding:10px"><p>Sem fixas futuras neste mês</p></div>';
 }
+// checkbox "já liquidado": vai para Transações mas NÃO mexe no saldo da conta
+// (serve para indicar que o saldo da conta já reflete este pagamento)
+function settleFixedItem(key, M){
+  if (settlementOf(key, M)) { showToast('⚠️ Já foi liquidado este mês'); return; }
+  const it = fixasItemsForMonth(M).find(x => x.key === key);
+  if (!it || it.amount == null) { showToast('Define primeiro o valor deste item'); return; }
+  const t = { id: state.nextTxId++, desc: it.name, kind: it.kind,
+    amount: it.kind==='income' ? Math.abs(it.amount) : -Math.abs(it.amount),
+    date: M + '-' + String(it.day).padStart(2,'0'), category: it.category,
+    accountId: it.accountId||null, applied:false, ts: Date.now() };
+  state.transactions.push(t);
+  state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
+  if (it.fin) it.fin.remaining = Math.max(0, round2((it.fin.remaining||0) - it.amount));
+  save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
+}
+
 function openBillModal(id){
   populateCategorySelect(document.getElementById('bill-category'), false);
   const b0 = id ? state.recurringBills.find(x=>x.id===id) : null;
@@ -34,12 +98,16 @@ function openBillModal(id){
     document.getElementById('bill-day').value = b.day;
     document.getElementById('bill-category').value = b.category;
     document.getElementById('bill-kind').value = b.kind || 'expense';
+    document.getElementById('bill-from').value = b.from || '';
+    document.getElementById('bill-to').value = b.to || '';
   } else {
     document.getElementById('bill-name').value = '';
     document.getElementById('bill-amount').value = '';
     document.getElementById('bill-day').value = '';
     document.getElementById('bill-category').value = 'Utilidades';
     document.getElementById('bill-kind').value = 'expense';
+    document.getElementById('bill-from').value = '';
+    document.getElementById('bill-to').value = '';
   }
   document.getElementById('bill-modal').classList.add('open');
 }
@@ -52,7 +120,9 @@ function saveBill(){
   const data = { name, day, category: document.getElementById('bill-category').value,
     amount: amountVal==='' ? null : parseFloat(amountVal),
     kind: document.getElementById('bill-kind').value,
-    accountId: parseInt(document.getElementById('bill-account').value)||null };
+    accountId: parseInt(document.getElementById('bill-account').value)||null,
+    from: document.getElementById('bill-from').value || null,
+    to: document.getElementById('bill-to').value || null };
   if (id) {
     const b = state.recurringBills.find(x=>x.id==id);
     if (b.auto === 'rooms') { data.amount = b.amount; data.kind = 'income'; } // valor vem da aba Casa
@@ -70,15 +140,18 @@ function registerBillPayment(){
   const id = parseInt(document.getElementById('bill-id').value);
   const b = state.recurringBills.find(x=>x.id===id);
   if (!b) { showToast('Guarda a despesa fixa primeiro'); return; }
+  const M = billsMonth || todayKey().slice(0,7);
+  if (settlementOf('bill:'+b.id, M)) { showToast('⚠️ Já foi realizado um pagamento deste item em ' + fmtMonth(M)); return; }
   const amt = b.amount!=null ? b.amount : parseFloat(document.getElementById('bill-amount').value) || 0;
   if (!amt) { showToast('Indica o valor deste mês'); return; }
   const accountId = parseInt(document.getElementById('bill-account').value)||null;
   const isInc = (document.getElementById('bill-kind').value || b.kind) === 'income';
   const t = { id: state.nextTxId++, desc: b.name, kind: isInc?'income':'expense',
     amount: isInc ? Math.abs(amt) : -Math.abs(amt),
-    date: todayKey(), category: b.category, accountId, applied:true };
+    date: todayKey(), category: b.category, accountId, applied:true, ts: Date.now() };
   state.transactions.push(t);
   applyTxBalance(t, 1); // credita/debita a conta escolhida
+  state.billSettlements['bill:'+b.id+'|'+M] = { txId: t.id, when: Date.now() };
   closeModal('bill-modal'); save(); showToast(isInc ? '✅ Registado e creditado na conta' : '✅ Registado e debitado da conta');
 }
 

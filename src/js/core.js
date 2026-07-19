@@ -42,16 +42,26 @@ function getEntity(ref){
   return state.investments.find(i => String(i.id) === id);
 }
 function round2(n){ return Math.round(n*100)/100; }
+function fmtDateTime(ts){
+  const d = new Date(ts);
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') +
+    ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+// uma atualização manual do saldo da conta (updatedAt) torna-se a verdade:
+// transações criadas antes dela deixam de poder mexer no saldo dessa conta
+function txSuperseded(t, ent){
+  return ent && ent.updatedAt && (t.ts||0) <= ent.updatedAt;
+}
 function applyTransfer(t, sign){
   const from = getEntity(t.fromRef), to = getEntity(t.toRef);
-  if (from) from.balance = round2((from.balance||0) - sign*Math.abs(t.amount));
-  if (to)   to.balance   = round2((to.balance||0)   + sign*Math.abs(t.amount));
+  if (from && !txSuperseded(t, from)) from.balance = round2((from.balance||0) - sign*Math.abs(t.amount));
+  if (to && !txSuperseded(t, to))     to.balance   = round2((to.balance||0)   + sign*Math.abs(t.amount));
 }
 // aplica (sign=1) ou reverte (sign=-1) o efeito de uma receita/despesa no
 // saldo da conta associada — só usado em transações com applied:true
 function applyTxBalance(t, sign){
   const a = state.accounts.find(x => x.id === t.accountId);
-  if (a) a.balance = round2((a.balance||0) + sign*(t.amount||0));
+  if (a && !txSuperseded(t, a)) a.balance = round2((a.balance||0) + sign*(t.amount||0));
 }
 function addMonthsKey(m, n){
   let x = m;
@@ -146,6 +156,7 @@ function defaultState(){
       nextRoomId:5,
       nextRoomAdjId:1
     },
+    billSettlements: {},
     settings:{ currency:'EUR', trading212Seeded:true, reservasMerged:true }
   };
 }
@@ -180,8 +191,15 @@ function migrateState(loaded){
   if (!s.house.nextRoomId) s.house.nextRoomId = base.house.nextRoomId;
   if (!s.house.nextRoomAdjId) s.house.nextRoomAdjId = base.house.nextRoomAdjId;
   delete s.house.roomRental;
-  s.creditCards.forEach(c => { if (c.monthlyDue == null) c.monthlyDue = 0; });
+  s.creditCards.forEach(c => {
+    if (c.monthlyDue == null) c.monthlyDue = 0;
+    (c.financedItems||[]).forEach(f => {
+      if (!f.startMonth) f.startMonth = todayKey().slice(0,7);
+      if (f.months == null) f.months = (f.installment && f.remaining) ? Math.ceil(f.remaining / f.installment) : null;
+    });
+  });
   s.recurringBills.forEach(b => { if (!b.kind) b.kind = 'expense'; });
+  s.billSettlements = loaded.billSettlements || {};
   s.settings = Object.assign({}, base.settings, { trading212Seeded:false, reservasMerged:false }, loaded.settings || {});
   // acrescentar a conta Trading 212 uma única vez a dados antigos
   if (!s.settings.trading212Seeded) {
