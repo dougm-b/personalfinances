@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 186.47
+      "balance": 161.47
     },
     {
       "id": 2,
@@ -110,9 +110,19 @@
       "category": "Utilidades",
       "accountId": 1,
       "applied": true
+    },
+    {
+      "id": 10,
+      "desc": "Ginásio",
+      "kind": "expense",
+      "amount": -25,
+      "date": "2026-07-19",
+      "category": "Saúde",
+      "accountId": 1,
+      "applied": true
     }
   ],
-  "nextTxId": 10,
+  "nextTxId": 11,
   "recurringBills": [
     {
       "id": 1,
