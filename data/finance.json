@@ -23,9 +23,15 @@
       "name": "Reservas (poupança automática)",
       "type": "Poupança automática",
       "balance": 1265.61
+    },
+    {
+      "id": 5,
+      "name": "Trading 212",
+      "type": "À ordem",
+      "balance": 0
     }
   ],
-  "nextAccountId": 5,
+  "nextAccountId": 6,
   "transactions": [
     {
       "id": 1,
@@ -46,56 +52,65 @@
       "name": "Prestação / Renda da Casa",
       "category": "Casa",
       "amount": 580,
-      "day": 8
+      "day": 8,
+      "kind": "expense"
     },
     {
       "id": 2,
       "name": "Água (Agere)",
       "category": "Utilidades",
       "amount": 41.65,
-      "day": 20
+      "day": 20,
+      "kind": "expense"
     },
     {
       "id": 3,
       "name": "Eletricidade (Endesa)",
       "category": "Utilidades",
-      "amount": null,
-      "day": 15
+      "amount": 151.03,
+      "day": 15,
+      "kind": "expense",
+      "accountId": 1
     },
     {
       "id": 4,
       "name": "Seguro Ocidental — Casa",
       "category": "Seguros",
       "amount": 18.35,
-      "day": 5
+      "day": 5,
+      "kind": "expense"
     },
     {
       "id": 5,
       "name": "Seguro Ocidental — Saúde",
       "category": "Seguros",
       "amount": 17.18,
-      "day": 5
+      "day": 5,
+      "kind": "expense"
     },
     {
       "id": 6,
       "name": "Vodafone",
       "category": "Subscrições",
       "amount": 15,
-      "day": 10
+      "day": 10,
+      "kind": "expense"
     },
     {
       "id": 7,
       "name": "Ginásio",
       "category": "Saúde",
       "amount": 25,
-      "day": 1
+      "day": 1,
+      "kind": "expense"
     },
     {
       "id": 9,
       "name": "MyHome",
       "category": "Casa",
       "amount": null,
-      "day": 20
+      "day": 20,
+      "kind": "expense"
     }
   ],
   "nextBillId": 10,
@@ -251,6 +266,7 @@
     "nextRoomAdjId": 1
   },
   "settings": {
-    "currency": "EUR"
+    "currency": "EUR",
+    "trading212Seeded": true
   }
 }
