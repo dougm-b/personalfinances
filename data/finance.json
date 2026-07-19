@@ -113,15 +113,7 @@
       "limit": 3500,
       "used": 1472.08,
       "monthlyDue": 0,
-      "financedItems": [
-        {
-          "id": 1,
-          "desc": "iPhone (crédito)",
-          "total": 1026.99,
-          "remaining": 445.09,
-          "installment": null
-        }
-      ]
+      "financedItems": []
     },
     {
       "id": 2,
