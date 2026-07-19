@@ -191,9 +191,18 @@
       "day": 20,
       "kind": "income",
       "accountId": 1
+    },
+    {
+      "id": 10,
+      "name": "Salário Randstad",
+      "day": 30,
+      "category": "Utilidades",
+      "amount": 795.92,
+      "kind": "expense",
+      "accountId": 1
     }
   ],
-  "nextBillId": 10,
+  "nextBillId": 11,
   "creditCards": [
     {
       "id": 1,
