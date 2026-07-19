@@ -236,12 +236,17 @@
     {
       "id": "ppr",
       "name": "PPR — Plano Poupança Reforma",
-      "balance": 1250,
+      "balance": 1614.09,
       "contributions": [
         {
           "date": "2024-01-01",
           "amount": 1250,
           "note": "Valor inicial (do histórico)"
+        },
+        {
+          "date": "2026-07-19",
+          "amount": 364.09,
+          "note": "correção manual de valor"
         }
       ]
     }
