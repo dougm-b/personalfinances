@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": -997.24
+      "balance": -1012.24
     },
     {
       "id": 2,
@@ -113,9 +113,19 @@
       "category": "Casa",
       "accountId": 1,
       "applied": true
+    },
+    {
+      "id": 8,
+      "desc": "Vodafone",
+      "kind": "expense",
+      "amount": -15,
+      "date": "2026-07-19",
+      "category": "Subscrições",
+      "accountId": 1,
+      "applied": true
     }
   ],
-  "nextTxId": 8,
+  "nextTxId": 9,
   "recurringBills": [
     {
       "id": 1,
