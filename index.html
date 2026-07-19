@@ -175,6 +175,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 .empty-state .icon{font-size:40px;margin-bottom:12px;opacity:.5}
 .empty-state p{font-size:14px}
 
+/* ── BANNER DE PERMISSÃO ── */
+#perm-banner{position:fixed;top:calc(var(--safe-top) + 64px);left:50%;transform:translateX(-50%);
+  width:calc(100% - 24px);max-width:456px;background:#2a1214;border:1px solid rgba(248,113,113,.5);
+  border-radius:14px;padding:12px 14px;font-size:12px;line-height:1.6;color:var(--txt);z-index:400;display:none}
+#perm-banner a{color:var(--red);font-weight:600}
+#perm-banner .close{float:right;background:none;border:none;color:var(--txt2);font-size:15px;cursor:pointer;padding:0 0 4px 8px}
+
 /* ── TOAST ── */
 #toast{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%) translateY(-10px);
   background:var(--g3);border:1px solid var(--g4);border-radius:20px;padding:8px 18px;font-size:13px;color:var(--txt);
@@ -212,6 +219,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- BANNER: token sem permissão de escrita -->
+<div id="perm-banner"></div>
 
 <!-- SYNC BAR -->
 <div id="sync-bar">
@@ -835,6 +845,31 @@ function migrateState(loaded){
 function checkToken(){
   if (ghToken) { document.getElementById('token-setup').style.display = 'none'; initApp(); }
 }
+function showPermBanner(){
+  const b = document.getElementById('perm-banner');
+  b.innerHTML = `<button class="close" onclick="this.parentElement.style.display='none'">✕</button>
+    <b>⚠️ O token não tem permissão de escrita</b> — nada se perde: os dados ficam neste browser e sobem sozinhos assim que corrigires.<br>
+    Em <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings → Personal access tokens</a>,
+    abre o teu token → <b>Repository permissions</b> → <b>Contents</b> → <b>Read and write</b> → Save.
+    Não precisas de gerar token novo nem de o voltar a colar aqui.`;
+  b.style.display = 'block';
+}
+function hidePermBanner(){
+  const b = document.getElementById('perm-banner');
+  if (b) b.style.display = 'none';
+}
+// GET /repos devolve as permissões efetivas do token; push=false → só leitura
+async function tokenCanWrite(token){
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}?t=` + Date.now(), {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return null; // não deu para verificar — não bloquear por isto
+    const info = await res.json();
+    if (info.permissions && info.permissions.push === false) return false;
+    return true;
+  } catch(e) { return null; }
+}
 async function saveToken(){
   const val = document.getElementById('token-input').value.trim();
   const err = document.getElementById('setup-error');
@@ -842,6 +877,11 @@ async function saveToken(){
     err.textContent = '❌ Token inválido. Deve começar com github_pat_ ou ghp_'; return;
   }
   err.textContent = 'A verificar token...';
+  const canWrite = await tokenCanWrite(val);
+  if (canWrite === false) {
+    err.textContent = '❌ O token só tem permissão de LEITURA. Edita-o no GitHub: Repository permissions → Contents → "Read and write".';
+    return;
+  }
   try {
     const res = await fetch(GH_API, { headers: { Authorization: `token ${val}`, Accept: 'application/vnd.github.v3+json' } });
     if (res.status === 404) {
@@ -977,11 +1017,13 @@ async function pushToGitHub(){
       // o sha e voltar a gravar o estado LOCAL — nunca descartar alterações locais
       if ((res.status === 409 || res.status === 422) && attempt < 3) { dbSha = await fetchRemoteSha(); continue; }
       if (res.status === 403 || res.status === 404) {
+        showPermBanner();
         throw new Error('o token não tem permissão de escrita neste repositório (Contents → Read and write)');
       }
       throw new Error(err.message || ('HTTP ' + res.status));
     }
     setDirty(false);
+    hidePermBanner();
     setSyncStatus('ok', 'guardado ✓');
     setTimeout(() => setSyncStatus('ok', 'sincronizado'), 2000);
     return true;
