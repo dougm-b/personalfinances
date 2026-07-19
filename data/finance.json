@@ -19,12 +19,6 @@
       "balance": 72.91
     },
     {
-      "id": 4,
-      "name": "Reservas (poupança automática)",
-      "type": "Poupança automática",
-      "balance": 0
-    },
-    {
       "id": 5,
       "name": "Trading 212",
       "type": "À ordem",
@@ -200,9 +194,19 @@
       "amount": 795.92,
       "kind": "income",
       "accountId": 1
+    },
+    {
+      "id": 11,
+      "name": "Renda dos Quartos",
+      "category": "Renda Recebida",
+      "kind": "income",
+      "day": 5,
+      "auto": "rooms",
+      "accountId": null,
+      "amount": 900
     }
   ],
-  "nextBillId": 11,
+  "nextBillId": 12,
   "creditCards": [
     {
       "id": 1,
@@ -298,13 +302,15 @@
           "id": 1,
           "amount": 300,
           "from": "2025-03",
-          "to": "2026-02"
+          "to": "2026-02",
+          "chargedUntil": "2026-07"
         },
         {
           "id": 2,
           "amount": 600,
           "from": "2026-08",
-          "to": "2026-12"
+          "to": "2026-12",
+          "chargedUntil": "2026-07"
         }
       ],
       "nextPlanId": 3,
@@ -371,6 +377,7 @@
   },
   "settings": {
     "currency": "EUR",
-    "trading212Seeded": true
+    "trading212Seeded": true,
+    "reservasMerged": true
   }
 }
