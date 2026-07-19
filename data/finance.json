@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": -400.06
+      "balance": -417.24
     },
     {
       "id": 2,
@@ -93,9 +93,19 @@
       "category": "Seguros",
       "accountId": 1,
       "applied": true
+    },
+    {
+      "id": 6,
+      "desc": "Seguro Ocidental — Saúde",
+      "kind": "expense",
+      "amount": -17.18,
+      "date": "2026-07-19",
+      "category": "Seguros",
+      "accountId": 1,
+      "applied": true
     }
   ],
-  "nextTxId": 6,
+  "nextTxId": 7,
   "recurringBills": [
     {
       "id": 1,
