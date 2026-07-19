@@ -118,7 +118,7 @@
     {
       "id": 2,
       "name": "Millennium bcp",
-      "limit": 0,
+      "limit": 4000,
       "used": 0,
       "monthlyDue": 0,
       "financedItems": []
