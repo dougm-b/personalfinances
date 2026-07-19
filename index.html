@@ -258,6 +258,16 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       </div>
 
       <div class="card">
+        <div class="card-title">Despesas por Categoria (mês)</div>
+        <div id="d-cats"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Histórico Mensal</div>
+        <div id="d-months"></div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Próximas Despesas Fixas</div>
         <div id="d-bills"></div>
       </div>
@@ -477,6 +487,30 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <h3>Saldo em Dívida Atual <button class="modal-close" onclick="closeModal('house-modal')">✕</button></h3>
     <div class="form-group"><label class="form-label">Saldo em dívida a Deny e Mauricio (€)</label><input class="form-input" id="house-remaining" type="number" step="0.01"/></div>
     <button class="btn-primary" onclick="saveHouseRemaining()">Guardar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loan-pay-modal">
+  <div class="modal">
+    <h3>Registar Pagamento do Empréstimo <button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></h3>
+    <div class="form-group"><label class="form-label">Valor pago (€)</label><input class="form-input" id="loan-pay-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
+    <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="loan-pay-date" type="date"/></div>
+    <button class="btn-primary" onclick="saveLoanPayment()">Registar pagamento</button>
+    <div class="note-box">Abate o valor no saldo em dívida e cria a transação correspondente (categoria Casa).</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="financed-modal">
+  <div class="modal">
+    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
+    <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
+      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
+    </div>
+    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
+    <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
   </div>
 </div>
 
@@ -786,6 +820,39 @@ function updateDash(){
     <div class="progress"><div style="width:${pctPaid}%"></div></div>
     <div class="row-detail" style="margin-top:6px">Saldo em dívida: <b style="color:var(--txt2)">${fmtEUR(loan.currentRemaining)}</b> — <span onclick="openHouseRemainingModal()" style="text-decoration:underline;cursor:pointer">editar</span></div>`;
 
+  // despesas por categoria do mês atual
+  const mk = todayKey().slice(0,7);
+  const catTotals = {};
+  state.transactions.filter(t => t.kind==='expense' && monthKey(t.date)===mk)
+    .forEach(t => { catTotals[t.category] = (catTotals[t.category]||0) + Math.abs(t.amount); });
+  const cats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  const maxCat = cats.length ? cats[0][1] : 1;
+  document.getElementById('d-cats').innerHTML = cats.length ? cats.map(([c,v]) => `
+    <div style="margin-bottom:10px">
+      <div class="progress-lbl"><span>${CATEGORY_EMOJI[c]||'✨'} ${esc(c)}</span><span>${fmtEUR(v)}</span></div>
+      <div class="progress"><div style="width:${(v/maxCat)*100}%"></div></div>
+    </div>`).join('') : '<div class="empty-state" style="padding:10px"><p>Sem despesas este mês</p></div>';
+
+  // histórico dos últimos 6 meses (só meses com movimentos)
+  const byMonth = {};
+  state.transactions.forEach(t => {
+    const m = monthKey(t.date);
+    if (!byMonth[m]) byMonth[m] = { income:0, expense:0 };
+    if (t.kind==='income') byMonth[m].income += t.amount;
+    else byMonth[m].expense += Math.abs(t.amount);
+  });
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const months = Object.keys(byMonth).sort().slice(-6).reverse();
+  document.getElementById('d-months').innerHTML = months.length ? months.map(m => {
+    const d = byMonth[m], net = d.income - d.expense;
+    const [y, mo] = m.split('-');
+    return `<div class="tl-item"><div class="tl-dot" style="background:${net>=0?'var(--good)':'var(--red)'}"></div>
+      <div class="tl-info"><div class="t">${monthNames[parseInt(mo)-1]} ${y}</div>
+        <div class="s">+${fmtEUR(d.income)} · -${fmtEUR(d.expense)}</div></div>
+      <div class="tl-val" style="color:${net>=0?'var(--good)':'var(--red)'}">${net>=0?'+':''}${fmtEUR(net)}</div>
+    </div>`;
+  }).join('') : '<div class="empty-state" style="padding:10px"><p>Sem histórico ainda</p></div>';
+
   const today = new Date().getDate();
   const upcoming = state.recurringBills.slice().sort((a,b)=>{
     const da = a.day>=today ? a.day-today : a.day-today+31;
@@ -996,18 +1063,21 @@ function renderCards(){
     const avail = (c.limit||0) - (c.used||0);
     const pct = c.limit ? Math.min(100,(c.used/c.limit)*100) : 0;
     const cls = pct > 80 ? 'red' : pct > 50 ? 'warn' : '';
-    const items = (c.financedItems||[]).map(f => `
-      <div class="row" style="cursor:default">
+    const items = (c.financedItems||[]).map(f => {
+      const fPct = f.total ? Math.min(100, ((f.total-f.remaining)/f.total)*100) : 0;
+      return `<div class="row" onclick="openFinancedModal(${c.id},${f.id})">
         <div class="row-emoji">📱</div>
-        <div class="row-info"><div class="row-name">${esc(f.desc)}</div><div class="row-detail">total ${fmtEUR(f.total)}</div></div>
+        <div class="row-info"><div class="row-name">${esc(f.desc)}</div><div class="row-detail">total ${fmtEUR(f.total)} · ${Math.round(fPct)}% pago</div></div>
         <div class="row-val">${fmtEUR(f.remaining)} em falta</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     return `<div class="card">
       <div class="card-title">${esc(c.name)} <span onclick="openCardModal(${c.id})" style="cursor:pointer;font-size:12px;text-transform:none;letter-spacing:0">editar ✎</span></div>
       <div class="progress-lbl"><span>Utilizado</span><span>${fmtEUR(c.used)} / ${fmtEUR(c.limit)}</span></div>
       <div class="progress ${cls}"><div style="width:${pct}%"></div></div>
       <div class="row-detail" style="margin-top:6px">Disponível: <b style="color:var(--txt2)">${fmtEUR(avail)}</b></div>
-      ${items ? `<div style="margin-top:12px">${items}</div>` : ''}
+      <div style="margin-top:12px">${items}</div>
+      <button class="btn-secondary" onclick="openFinancedModal(${c.id})">+ Compra financiada</button>
     </div>`;
   }).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>';
 }
@@ -1040,6 +1110,44 @@ function deleteCard(){
   const id = parseInt(document.getElementById('card-id').value);
   state.creditCards = state.creditCards.filter(c=>c.id!==id);
   closeModal('card-modal'); save(); showToast('🗑️ Cartão eliminado');
+}
+function openFinancedModal(cardId, finId){
+  document.getElementById('fin-card-id').value = cardId;
+  document.getElementById('fin-id').value = finId||'';
+  document.getElementById('financed-modal-title').textContent = finId ? 'Editar Compra Financiada' : 'Nova Compra Financiada';
+  document.getElementById('fin-delete-btn').style.display = finId ? 'block' : 'none';
+  if (finId) {
+    const c = state.creditCards.find(x=>x.id===cardId);
+    const f = (c.financedItems||[]).find(x=>x.id===finId);
+    document.getElementById('fin-desc').value = f.desc;
+    document.getElementById('fin-total').value = f.total;
+    document.getElementById('fin-remaining').value = f.remaining;
+  } else {
+    document.getElementById('fin-desc').value = '';
+    document.getElementById('fin-total').value = '';
+    document.getElementById('fin-remaining').value = '';
+  }
+  document.getElementById('financed-modal').classList.add('open');
+}
+function saveFinancedItem(){
+  const cardId = parseInt(document.getElementById('fin-card-id').value);
+  const finId = document.getElementById('fin-id').value;
+  const desc = document.getElementById('fin-desc').value.trim();
+  if (!desc) { showToast('Indica uma descrição'); return; }
+  const c = state.creditCards.find(x=>x.id===cardId);
+  c.financedItems = c.financedItems || [];
+  const data = { desc, total: parseFloat(document.getElementById('fin-total').value)||0,
+    remaining: parseFloat(document.getElementById('fin-remaining').value)||0 };
+  if (finId) { Object.assign(c.financedItems.find(f=>f.id==finId), data); }
+  else { c.financedItems.push({ id: state.nextFinancedId++, ...data }); }
+  closeModal('financed-modal'); save(); showToast('✅ Guardado');
+}
+function deleteFinancedItem(){
+  const cardId = parseInt(document.getElementById('fin-card-id').value);
+  const finId = parseInt(document.getElementById('fin-id').value);
+  const c = state.creditCards.find(x=>x.id===cardId);
+  c.financedItems = (c.financedItems||[]).filter(f=>f.id!==finId);
+  closeModal('financed-modal'); save(); showToast('🗑️ Eliminado');
 }
 
 // ══════════════════════════════════════════
@@ -1128,6 +1236,22 @@ function saveHouseRemaining(){
   state.house.loan.currentRemaining = parseFloat(document.getElementById('house-remaining').value)||0;
   closeModal('house-modal'); save(); showToast('✅ Atualizado');
 }
+function openLoanPayModal(){
+  document.getElementById('loan-pay-amount').value = '';
+  document.getElementById('loan-pay-date').value = todayKey();
+  document.getElementById('loan-pay-modal').classList.add('open');
+}
+function saveLoanPayment(){
+  const amt = parseFloat(document.getElementById('loan-pay-amount').value);
+  if (!amt || amt <= 0) { showToast('Indica um valor válido'); return; }
+  const date = document.getElementById('loan-pay-date').value || todayKey();
+  state.house.loan.currentRemaining = Math.max(0, (state.house.loan.currentRemaining||0) - amt);
+  state.transactions.push({ id: state.nextTxId++, desc: 'Pagamento empréstimo ' + state.house.loan.credor,
+    kind:'expense', amount:-Math.abs(amt), date, category:'Casa',
+    accountId: state.accounts[0] ? state.accounts[0].id : null });
+  closeModal('loan-pay-modal'); save();
+  showToast('✅ Pagamento registado — saldo em dívida: ' + fmtEUR(state.house.loan.currentRemaining));
+}
 function renderHouse(){
   const h = state.house;
   document.getElementById('house-summary').innerHTML = `
@@ -1149,7 +1273,8 @@ function renderHouse(){
       <div class="stat-box"><div class="l">Valor Total Emprestado</div><div class="v">${fmtEUR(loan.total)}</div></div>
       <div class="stat-box"><div class="l">Saldo em Dívida Atual</div><div class="v">${fmtEUR(loan.currentRemaining)}</div></div>
     </div>
-    <button class="btn-secondary" onclick="openHouseRemainingModal()">Atualizar saldo em dívida</button>`;
+    <button class="btn-primary" onclick="openLoanPayModal()">Registar pagamento</button>
+    <button class="btn-secondary" onclick="openHouseRemainingModal()">Corrigir saldo em dívida</button>`;
 
   document.getElementById('house-transfers').innerHTML = `<div class="timeline">${loan.transfers.map(t => `
     <div class="tl-item"><div class="tl-dot"></div>

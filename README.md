@@ -9,19 +9,22 @@ browser.
 ## Funcionalidades
 
 - **Dashboard** — património líquido, receitas/despesas do mês, cartão de
-  crédito, empréstimo da casa e próximas despesas fixas.
+  crédito, empréstimo da casa, despesas por categoria do mês, histórico
+  mensal e próximas despesas fixas.
 - **Contas** — contas bancárias (saldo editável manualmente).
 - **Transações** — registo de receitas/despesas por categoria e conta.
 - **Fixas** — despesas fixas mensais (renda, água, luz, seguros, ginásio...)
   com botão para registar o pagamento do mês como transação.
 - **Cartão** — limite, valor utilizado/disponível e compras a crédito
-  (ex: financiamento de telemóvel).
+  (ex: financiamento de telemóvel), com criação/edição/eliminação de cada
+  compra financiada.
 - **Investir** — contas de investimento (Trading, PPR) com histórico de
   movimentos, e metas de poupança.
 - **Casa** — detalhe do financiamento do apartamento: fontes de
   financiamento, empréstimo pessoal (Deny e Mauricio) com transferências e
   plano de pagamento, comparação com financiamento bancário, e referência de
-  renda dos quartos.
+  renda dos quartos. O botão "Registar pagamento" abate o valor no saldo em
+  dívida e cria automaticamente a transação correspondente.
 
 ## Dados iniciais
 
