@@ -110,8 +110,8 @@
     {
       "id": 1,
       "name": "WiZink",
-      "limit": 3500,
-      "used": 1472.08,
+      "limit": 1000,
+      "used": 0,
       "monthlyDue": 0,
       "financedItems": []
     },
