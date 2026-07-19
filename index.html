@@ -257,7 +257,11 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         </div>
         <div class="sim-nav">
           <button class="sim-btn" onclick="dashShift(-1)">‹</button>
-          <span class="sim-label" id="d-sim-label">Hoje</span>
+          <span class="sim-label" id="d-sim-label" style="position:relative;cursor:pointer">
+            <span id="d-sim-label-txt">Hoje ▾</span>
+            <input type="month" id="d-sim-month" onchange="dashPickMonth(this.value)"
+              style="position:absolute;inset:0;opacity:0;width:100%;height:100%;border:0;cursor:pointer"/>
+          </span>
           <button class="sim-btn" onclick="dashShift(1)">›</button>
         </div>
         <div class="row-detail" id="d-sim-note" style="display:none;margin-top:8px;text-align:left"></div>
@@ -301,6 +305,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
     <!-- ══════════ CONTAS ══════════ -->
     <div class="screen" id="accounts-screen">
+      <div class="card">
+        <div class="card-title">Resumo</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="l">Em contas</div><div class="v" id="acc-total">€0</div></div>
+          <div class="stat-box" onclick="showScreen('invest')" style="cursor:pointer"><div class="l">Investido (Trading 212 + PPR) →</div><div class="v" id="acc-invest-total">€0</div></div>
+        </div>
+      </div>
       <div class="section-hdr"><h3>Contas Bancárias</h3><button class="add-btn" onclick="openAccountModal()">+ Nova</button></div>
       <div id="accounts-list"></div>
     </div>
@@ -749,7 +760,6 @@ function defaultState(){
       {id:1, name:'Millennium bcp', type:'À ordem', balance:222.14},
       {id:2, name:'ActivoBank', type:'Poupança', balance:49.27},
       {id:3, name:'Revolut', type:'À ordem', balance:0},
-      {id:4, name:'Reservas (poupança automática)', type:'Poupança automática', balance:1265.61},
       {id:5, name:'Trading 212', type:'À ordem', balance:0},
     ],
     nextAccountId:6,
@@ -820,7 +830,7 @@ function defaultState(){
       nextRoomId:5,
       nextRoomAdjId:1
     },
-    settings:{ currency:'EUR', trading212Seeded:true }
+    settings:{ currency:'EUR', trading212Seeded:true, reservasMerged:true }
   };
 }
 
@@ -856,7 +866,7 @@ function migrateState(loaded){
   delete s.house.roomRental;
   s.creditCards.forEach(c => { if (c.monthlyDue == null) c.monthlyDue = 0; });
   s.recurringBills.forEach(b => { if (!b.kind) b.kind = 'expense'; });
-  s.settings = Object.assign({}, base.settings, { trading212Seeded:false }, loaded.settings || {});
+  s.settings = Object.assign({}, base.settings, { trading212Seeded:false, reservasMerged:false }, loaded.settings || {});
   // acrescentar a conta Trading 212 uma única vez a dados antigos
   if (!s.settings.trading212Seeded) {
     if (!s.accounts.some(a => /trading\s*212/i.test(a.name))) {
@@ -864,6 +874,12 @@ function migrateState(loaded){
       s.accounts.push({ id: s.nextAccountId++, name:'Trading 212', type:'À ordem', balance:0 });
     }
     s.settings.trading212Seeded = true;
+  }
+  // a conta "Reservas (poupança automática)" duplicava o dinheiro que já está
+  // nos investimentos (Trading 212 + PPR) — remover uma única vez
+  if (!s.settings.reservasMerged) {
+    s.accounts = s.accounts.filter(a => !(/reservas/i.test(a.name) && /poupança autom/i.test(a.name)));
+    s.settings.reservasMerged = true;
   }
   return s;
 }
@@ -1105,6 +1121,13 @@ function monthTx(kind){
 // ══════════════════════════════════════════
 let dashOffset = 0; // meses no futuro para a simulação do património
 function dashShift(d){ dashOffset = Math.max(0, dashOffset + d); updateDash(); }
+function dashPickMonth(val){
+  if (!val) return;
+  const [cy,cm] = todayKey().slice(0,7).split('-').map(Number);
+  const [ty,tm] = val.split('-').map(Number);
+  dashOffset = Math.max(0, (ty-cy)*12 + (tm-cm));
+  updateDash();
+}
 
 function updateDash(){
   // património = total investido + contas à ordem
@@ -1114,20 +1137,25 @@ function updateDash(){
   const mExpense = monthTx('expense'); // negativo
   let net = invTotal + ordemTotal;
   const noteEl = document.getElementById('d-sim-note');
+  const curMonth = todayKey().slice(0,7);
+  const monthInput = document.getElementById('d-sim-month');
+  monthInput.min = curMonth;
   if (dashOffset > 0) {
-    const targetM = addMonthsKey(todayKey().slice(0,7), dashOffset);
+    const targetM = addMonthsKey(curMonth, dashOffset);
     // receitas/despesas do mês atual mantidas + movimentos previstos até lá
     const plannedSum = state.plannedTx
       .filter(p => p.dueDate > todayKey() && p.dueDate <= targetM + '-31')
       .reduce((s,p) => s + p.amount, 0);
     net += dashOffset * (mIncome + mExpense) + plannedSum;
     document.getElementById('d-net-lbl').textContent = 'Património previsto';
-    document.getElementById('d-sim-label').textContent = fmtMonth(targetM);
+    document.getElementById('d-sim-label-txt').textContent = fmtMonth(targetM) + ' ▾';
+    monthInput.value = targetM;
     noteEl.style.display = '';
-    noteEl.textContent = `Simulação: assume que as receitas (${fmtEUR(mIncome)}/mês) e despesas (${fmtEUR(Math.abs(mExpense))}/mês) do mês atual se mantêm, mais os movimentos previstos até ${fmtMonth(targetM)}.`;
+    noteEl.textContent = `Simulação: assume que as receitas (${fmtEUR(mIncome)}/mês) e despesas (${fmtEUR(Math.abs(mExpense))}/mês) do mês atual se mantêm, mais os movimentos previstos até ${fmtMonth(targetM)}. Toca na data para escolher outro mês/ano.`;
   } else {
     document.getElementById('d-net-lbl').textContent = 'Património líquido';
-    document.getElementById('d-sim-label').textContent = 'Hoje';
+    document.getElementById('d-sim-label-txt').textContent = 'Hoje ▾';
+    monthInput.value = curMonth;
     noteEl.style.display = 'none';
   }
   document.getElementById('d-networth').textContent = fmtEUR(net);
@@ -1231,6 +1259,8 @@ function txRow(t){
 // CONTAS
 // ══════════════════════════════════════════
 function renderAccounts(){
+  document.getElementById('acc-total').textContent = fmtEUR(totalAccounts());
+  document.getElementById('acc-invest-total').textContent = fmtEUR(totalInvestments());
   const el = document.getElementById('accounts-list');
   el.innerHTML = state.accounts.length ? state.accounts.map(a => {
     const nPlanned = state.plannedTx.filter(p => p.accountId === a.id).length;
