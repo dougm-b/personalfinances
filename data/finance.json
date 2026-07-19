@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 518.06
+      "balance": -356.71
     },
     {
       "id": 2,
@@ -61,9 +61,21 @@
       "fromRef": null,
       "toRef": null,
       "applied": true
+    },
+    {
+      "id": 3,
+      "desc": "Subsídio Ferias",
+      "kind": "expense",
+      "date": "2026-07-19",
+      "category": "Outros",
+      "accountId": 1,
+      "amount": -874.77,
+      "fromRef": null,
+      "toRef": null,
+      "applied": true
     }
   ],
-  "nextTxId": 3,
+  "nextTxId": 4,
   "recurringBills": [
     {
       "id": 1,
