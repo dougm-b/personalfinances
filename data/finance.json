@@ -179,8 +179,8 @@
     "loan": {
       "credor": "Deny e Mauricio",
       "total": 30757.19,
-      "baseRemaining": 30757.19,
-      "baseMonth": "2025-02",
+      "baseRemaining": 23557.19,
+      "baseMonth": "2026-07",
       "paymentPlans": [
         {
           "id": 1,
