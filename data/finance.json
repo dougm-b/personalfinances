@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 161.47
+      "balance": 186.47
     },
     {
       "id": 2,
@@ -49,16 +49,6 @@
       "amount": 874.77,
       "fromRef": null,
       "toRef": null,
-      "applied": true
-    },
-    {
-      "id": 4,
-      "desc": "Ginásio",
-      "kind": "expense",
-      "amount": -25,
-      "date": "2026-07-19",
-      "category": "Saúde",
-      "accountId": 1,
       "applied": true
     },
     {
