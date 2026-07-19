@@ -126,7 +126,7 @@
     {
       "id": 3,
       "name": "ActivoBank",
-      "limit": 0,
+      "limit": 2000,
       "used": 0,
       "monthlyDue": 0,
       "financedItems": []
