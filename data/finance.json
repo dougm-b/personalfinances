@@ -187,9 +187,15 @@
           "amount": 300,
           "from": "2025-03",
           "to": "2026-02"
+        },
+        {
+          "id": 2,
+          "amount": 600,
+          "from": "2026-08",
+          "to": "2026-12"
         }
       ],
-      "nextPlanId": 2,
+      "nextPlanId": 3,
       "transfers": [
         {
           "date": "2024-11-12",
