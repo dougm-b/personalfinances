@@ -797,10 +797,32 @@ function setSyncStatus(status, label){
   if (!dot || !lbl) return;
   dot.className = 'sync-dot ' + status; lbl.className = 'sync-label ' + status; lbl.textContent = label;
 }
-let syncBusy = false;
+let syncBusy = false;    // a carregar do GitHub
+let pushBusy = false;    // a gravar no GitHub
+let pushQueued = false;  // gravação pedida enquanto outra decorria
+let dirty = localStorage.getItem('dbfin_dirty') === '1'; // alterações locais ainda não confirmadas no GitHub
+
+// Cache local: cada estado carregado/alterado fica no localStorage, para que
+// uma falha de rede ou de permissões do token nunca faça perder dados ao
+// recarregar a página.
+function cacheState(){
+  try { localStorage.setItem('dbfin_cache', JSON.stringify(state)); } catch(e) {}
+}
+function setDirty(v){
+  dirty = v;
+  try { v ? localStorage.setItem('dbfin_dirty','1') : localStorage.removeItem('dbfin_dirty'); } catch(e) {}
+}
+function loadCachedState(){
+  try {
+    const raw = localStorage.getItem('dbfin_cache');
+    return raw ? migrateState(JSON.parse(raw)) : null;
+  } catch(e) { return null; }
+}
+
 async function loadFromGitHub(opts){
   opts = opts || {};
-  if (opts.skipIfBusy && syncBusy) return false;
+  // nunca sobrepor alterações locais por gravar com uma leitura em segundo plano
+  if (opts.skipIfBusy && (syncBusy || pushBusy || dirty)) return false;
   syncBusy = true;
   if (!opts.silent) setSyncStatus('syncing', 'a carregar...');
   try {
@@ -809,18 +831,37 @@ async function loadFromGitHub(opts){
     const data = await res.json();
     dbSha = data.sha;
     const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+    if (dirty) {
+      // há alterações locais por gravar: não as descartar — só atualizar o sha
+      setSyncStatus('ok', 'alterações por guardar');
+      return false;
+    }
     state = migrateState(content);
+    cacheState();
     setSyncStatus('ok', 'sincronizado');
     renderAll();
     return true;
   } catch(e) {
-    setSyncStatus(opts.silent ? 'ok' : 'error', opts.silent ? 'sincronizado' : 'erro ao carregar');
-    if (!opts.silent) { showToast('⚠️ Erro ao carregar dados do GitHub'); state = migrateState(null); }
+    if (!opts.silent) {
+      const cached = loadCachedState();
+      if (cached) {
+        state = cached;
+        setSyncStatus('error', 'offline — dados locais');
+        showToast('⚠️ Sem ligação ao GitHub — a usar os dados guardados neste browser');
+      } else {
+        state = migrateState(null);
+        setSyncStatus('error', 'erro ao carregar');
+        showToast('⚠️ Erro ao carregar dados do GitHub');
+      }
+    } else {
+      setSyncStatus('ok', 'sincronizado');
+    }
     return false;
   } finally { syncBusy = false; }
 }
 async function silentSync(){
   if (!ghToken || document.visibilityState === 'hidden') return;
+  if (dirty && !pushBusy) { pushToGitHub(); return; } // tentar de novo gravações falhadas
   const ok = await loadFromGitHub({ silent:true, skipIfBusy:true });
   if (ok) renderAll();
 }
@@ -830,29 +871,52 @@ function startAutoSync(){
   autoSyncTimer = setInterval(silentSync, 45000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') silentSync(); });
 }
+async function fetchRemoteSha(){
+  const res = await fetch(GH_API + '?t=' + Date.now(), { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' } });
+  if (!res.ok) throw new Error('não foi possível obter a versão atual do ficheiro');
+  return (await res.json()).sha;
+}
 async function pushToGitHub(){
+  if (pushBusy) { pushQueued = true; return true; }
+  pushBusy = true;
   setSyncStatus('syncing', 'a guardar...');
   try {
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
-    const body = { message: `finance: update ${new Date().toISOString()}`, content, ...(dbSha ? {sha: dbSha} : {}) };
-    const res = await fetch(GH_API, {
-      method:'PUT',
-      headers:{ Authorization:`token ${ghToken}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      if (res.status === 409 || res.status === 422) { await loadFromGitHub(); return await pushToGitHub(); }
-      throw new Error(err.message);
+    for (let attempt = 0; ; attempt++) {
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
+      const body = { message: `finance: update ${new Date().toISOString()}`, content, ...(dbSha ? {sha: dbSha} : {}) };
+      const res = await fetch(GH_API, {
+        method:'PUT',
+        headers:{ Authorization:`token ${ghToken}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        dbSha = data.content.sha;
+        break;
+      }
+      const err = await res.json().catch(() => ({}));
+      // conflito de versão (outro dispositivo gravou entretanto): atualizar só
+      // o sha e voltar a gravar o estado LOCAL — nunca descartar alterações locais
+      if ((res.status === 409 || res.status === 422) && attempt < 3) { dbSha = await fetchRemoteSha(); continue; }
+      if (res.status === 403 || res.status === 404) {
+        throw new Error('o token não tem permissão de escrita neste repositório (Contents → Read and write)');
+      }
+      throw new Error(err.message || ('HTTP ' + res.status));
     }
-    const data = await res.json();
-    dbSha = data.content.sha;
+    setDirty(false);
     setSyncStatus('ok', 'guardado ✓');
     setTimeout(() => setSyncStatus('ok', 'sincronizado'), 2000);
     return true;
-  } catch(e) { setSyncStatus('error', 'erro ao guardar'); showToast('❌ Erro ao guardar: ' + e.message); return false; }
+  } catch(e) {
+    setSyncStatus('error', 'erro ao guardar — dados locais seguros');
+    showToast('❌ Erro ao guardar: ' + e.message, 6000);
+    return false;
+  } finally {
+    pushBusy = false;
+    if (pushQueued) { pushQueued = false; pushToGitHub(); }
+  }
 }
-function save(){ pushToGitHub(); renderAll(); }
+function save(){ setDirty(true); cacheState(); pushToGitHub(); renderAll(); }
 
 // ══════════════════════════════════════════
 // MODALS / TOAST / NAV
@@ -1636,7 +1700,14 @@ function renderAll(){
   renderBills(); renderPlanned(); renderCards(); renderInvest(); renderGoals(); renderHouse();
 }
 async function initApp(){
-  await loadFromGitHub();
+  // se ficou uma gravação pendente (ex: token sem permissão de escrita, sem
+  // rede), arranca com os dados locais em cache em vez dos do GitHub
+  if (dirty) {
+    const cached = loadCachedState();
+    if (cached) state = cached; else setDirty(false);
+  }
+  await loadFromGitHub(); // obtém o sha; nunca sobrepõe alterações locais pendentes
+  if (dirty) pushToGitHub(); // tenta gravar já o que ficou pendente
   renderAll();
   startAutoSync();
 }

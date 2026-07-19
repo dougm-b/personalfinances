@@ -54,6 +54,14 @@ A app faz poll ao GitHub a cada 45s (só quando a aba está visível) e quando o
 browser volta a ficar visível, para os dados aparecerem sozinhos quando são
 alterados noutro dispositivo.
 
+Cada alteração fica também em cache no `localStorage`: se a gravação no
+GitHub falhar (sem rede, ou token sem permissão de escrita), os dados
+sobrevivem ao recarregar da página e a app volta a tentar gravá-los
+automaticamente no próximo ciclo de sincronização. O indicador no canto
+superior direito mostra o estado ("guardado ✓", "erro ao guardar — dados
+locais seguros", etc.). Nota: o token precisa da permissão **Contents:
+Read and write** — só leitura deixa carregar os dados mas falha ao guardar.
+
 ## Exportar / importar
 
 No ícone de definições (⚙, topo direito) há botões para exportar os dados
