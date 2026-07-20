@@ -259,7 +259,8 @@
       "limit": 2000,
       "used": 0,
       "monthlyDue": 0,
-      "financedItems": []
+      "financedItems": [],
+      "dueDay": 1
     }
   ],
   "nextCardId": 4,
