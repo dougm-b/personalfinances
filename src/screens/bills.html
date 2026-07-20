@@ -12,9 +12,17 @@
           <div class="stat-box"><div class="l">Receitas</div><div class="v pos" id="bills-total-inc">€0</div></div>
         </div>
       </div>
-      <div class="section-hdr"><h3>Passadas</h3><button class="add-btn" onclick="openBillModal()">+ Novo</button></div>
+      <div class="section-hdr"><h3>Passadas</h3><span style="display:flex;gap:8px">
+        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button>
+        <button class="add-btn" onclick="openBillModal()">+ Novo</button></span></div>
+      <div id="bills-sort-menu" class="card" style="display:none;padding:8px 12px">
+        <div class="row" style="margin-bottom:4px" onclick="setBillsSort('day')"><div class="row-info"><div class="row-name" id="bs-day">📅 Por data de débito</div></div></div>
+        <div class="row" style="margin-bottom:4px" onclick="setBillsSort('valueDesc')"><div class="row-info"><div class="row-name" id="bs-desc">⬇ Valor: do maior para o menor</div></div></div>
+        <div class="row" style="margin-bottom:0" onclick="setBillsSort('valueAsc')"><div class="row-info"><div class="row-name" id="bs-asc">⬆ Valor: do menor para o maior</div></div></div>
+      </div>
       <div id="bills-past"></div>
-      <div class="section-hdr"><h3>Futuras</h3></div>
+      <div class="section-hdr"><h3>Futuras</h3>
+        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button></div>
       <div id="bills-future"></div>
 
       <div class="section-hdr"><h3>Movimentos Previstos</h3><button class="add-btn" onclick="openPlannedModal()">+ Novo</button></div>

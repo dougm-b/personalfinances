@@ -2,6 +2,24 @@
 // DESPESAS FIXAS
 // ══════════════════════════════════════════
 let billsMonth = null; // mês selecionado na aba Fixas (YYYY-MM)
+let billsSort = 'day'; // 'day' | 'valueDesc' | 'valueAsc'
+function toggleBillsSortMenu(e){
+  e.stopPropagation();
+  const m = document.getElementById('bills-sort-menu');
+  m.style.display = m.style.display === 'none' ? '' : 'none';
+}
+function setBillsSort(mode){
+  billsSort = mode;
+  document.getElementById('bills-sort-menu').style.display = 'none';
+  renderBills();
+}
+function sortBillItems(arr){
+  const a = arr.slice();
+  if (billsSort === 'valueDesc') a.sort((x,y) => (y.amount||0) - (x.amount||0));
+  else if (billsSort === 'valueAsc') a.sort((x,y) => (x.amount||0) - (y.amount||0));
+  else a.sort((x,y) => x.day - y.day);
+  return a;
+}
 function billsShiftMonth(d){
   const cur = billsMonth || todayKey().slice(0,7);
   let [y,m] = cur.split('-').map(Number);
@@ -37,13 +55,13 @@ function settlementOf(key, M){ return (state.billSettlements||{})[key+'|'+M]; }
 function billItemRow(it, M, isFuture){
   const settled = settlementOf(it.key, M);
   const isInc = it.kind === 'income';
-  // riscado em cinza (sobrepõe o verde das receitas)
-  const style = settled ? 'text-decoration:line-through;color:var(--txt3);opacity:.8' : '';
+  // só o VALOR fica riscado (em cinza); nome e detalhes mantêm as cores normais
+  const style = settled ? 'text-decoration:line-through;color:var(--txt3)' : '';
   const check = `<input type="checkbox" ${settled?'checked':''} onclick="event.stopPropagation();toggleFixedItem('${it.key}','${M}')" title="${settled?'Desmarcar (volta a não pago)':'Marcar como liquidado (não mexe no saldo da conta)'}" style="width:18px;height:18px;accent-color:var(--txt3)"/>`;
   const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
   return `<div class="row" onclick="${open}">
     <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
-    <div class="row-info" style="${style}"><div class="row-name">${esc(it.name)}</div>
+    <div class="row-info"><div class="row-name">${esc(it.name)}</div>
       <div class="row-detail">dia ${it.day} · ${esc(it.category)} · ${isInc?'credita':'debita'}${it.bill&&it.bill.auto==='rooms'?' · sincronizada com a Casa':''}${it.fin?' · prestação do cartão':''}</div></div>
     <div class="row-val ${settled?'':(isInc?'pos':'')}" style="${style}">${it.amount!=null ? (isInc?'+':'') + fmtEUR(it.amount) : 'variável'}</div>
     ${check}
@@ -64,11 +82,15 @@ function renderBills(){
     const dk = M + '-' + String(it.day).padStart(2,'0');
     (dk <= today ? past : future).push(it);
   });
+  ['bs-day','bs-desc','bs-asc'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.color = (['day','valueDesc','valueAsc'][i] === billsSort) ? 'var(--acc)' : '';
+  });
   document.getElementById('bills-past').innerHTML = past.length
-    ? past.map(it => billItemRow(it, M, false)).join('')
+    ? sortBillItems(past).map(it => billItemRow(it, M, false)).join('')
     : '<div class="empty-state" style="padding:10px"><p>Sem fixas passadas neste mês</p></div>';
   document.getElementById('bills-future').innerHTML = future.length
-    ? future.map(it => billItemRow(it, M, true)).join('')
+    ? sortBillItems(future).map(it => billItemRow(it, M, true)).join('')
     : '<div class="empty-state" style="padding:10px"><p>Sem fixas futuras neste mês</p></div>';
 }
 // marcar/desmarcar liquidação
