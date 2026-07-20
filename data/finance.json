@@ -294,11 +294,13 @@
       "name": "Despesas Gerais do Mês",
       "day": 1,
       "category": "Utilidades",
-      "amount": 200,
+      "amount": 300,
       "kind": "expense",
       "accountId": 1,
       "from": null,
-      "to": null
+      "to": null,
+      "fromRef": "acc:1",
+      "toRef": "acc:1"
     },
     {
       "id": 15,
