@@ -729,6 +729,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 <div class="modal-overlay" id="networth-modal">
   <div class="modal">
     <h3>Património — Detalhe <button class="modal-close" onclick="closeModal('networth-modal')">✕</button></h3>
+    <div class="chip-row" id="nwc-ranges"></div>
+    <div id="nwc-info" class="row-detail" style="min-height:18px;margin-bottom:4px"></div>
+    <div id="nwc-chart" style="margin-bottom:14px"></div>
     <div id="nw-body"></div>
   </div>
 </div>
@@ -1417,7 +1420,67 @@ function openNetWorthDetail(){
     `<div class="stat-box" style="margin-top:12px"><div class="l">Património líquido a hoje</div><div class="v">${fmtEUR(round2(invTotal + ordemTotal))}</div></div>` +
     (outras.length ? `<div class="note-box" style="margin-top:10px">Fora do cálculo (não são à ordem): ${outras.map(a => esc(a.name) + ' ' + fmtEUR(a.balance||0)).join(' · ')}</div>` : '') +
     (dashOffset > 0 ? '<div class="note-box" style="margin-top:8px">Estes são os valores a hoje — o valor no card está em modo simulação para ' + document.getElementById('d-sim-label-txt').textContent.replace(' ▾','') + '.</div>' : '');
+  drawNWChart();
   document.getElementById('networth-modal').classList.add('open');
+}
+
+// ── gráfico interativo da evolução prevista do património ──
+let nwRange = '12m';
+const NW_RANGES = [['fim','Fim do ano'],['12m','12 meses'],['2a','2 anos'],['5a','5 anos']];
+function nwSeries(months){
+  const cur = todayKey().slice(0,7), today = todayKey();
+  let v = round2(totalInvestments() + state.accounts.filter(a => a.type === 'À ordem').reduce((s,a) => s + (a.balance||0), 0));
+  const pts = [{ m: cur, label:'Hoje', v }];
+  const fx = (M, pendingOnly) => fixasItemsForMonth(M)
+    .filter(it => it.kind !== 'transfer' && it.amount != null &&
+      (!pendingOnly || (!settlementOf(it.key, M) && (M + '-' + String(it.day).padStart(2,'0')) >= today)))
+    .reduce((s,it) => s + (it.kind === 'income' ? it.amount : -it.amount), 0);
+  const pl = M => state.plannedTx.filter(p => monthKey(p.dueDate) === M && p.dueDate > today).reduce((s,p) => s + p.amount, 0);
+  v = round2(v + fx(cur, true) + pl(cur));
+  pts.push({ m: cur, label: 'Fim de ' + fmtMonth(cur), v });
+  let m = cur;
+  for (let i = 1; i <= months; i++) {
+    m = nextMonth(m);
+    v = round2(v + fx(m, false) + pl(m));
+    pts.push({ m, label: fmtMonth(m), v });
+  }
+  return pts;
+}
+function setNWRange(r){ nwRange = r; drawNWChart(); }
+function drawNWChart(){
+  const mo = parseInt(todayKey().slice(5,7), 10);
+  const months = Math.max(1, nwRange === 'fim' ? 12 - mo : nwRange === '12m' ? 12 : nwRange === '2a' ? 24 : 60);
+  const pts = nwSeries(months);
+  document.getElementById('nwc-ranges').innerHTML = NW_RANGES.map(([k,l]) =>
+    `<div class="chip ${k===nwRange?'active':''}" onclick="setNWRange('${k}')">${l}</div>`).join('');
+  const W = 440, H = 170, P = 10;
+  const vs = pts.map(p => p.v);
+  const mn = Math.min(...vs), mx = Math.max(...vs), span = (mx - mn) || 1;
+  const X = i => P + (W - 2*P) * i / (pts.length - 1);
+  const Y = v => H - P - (H - 2*P) * (v - mn) / span;
+  const line = pts.map((p,i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
+  document.getElementById('nwc-chart').innerHTML =
+    `<svg id="nwc-svg" viewBox="0 0 ${W} ${H}" style="width:100%;display:block;touch-action:none">
+      <path d="${line} L ${X(pts.length-1).toFixed(1)} ${H} L ${X(0).toFixed(1)} ${H} Z" fill="rgba(212,212,216,.08)"/>
+      <path d="${line}" fill="none" stroke="var(--acc)" stroke-width="2"/>
+      <line id="nwc-cross" y1="0" y2="${H}" stroke="var(--txt3)" stroke-dasharray="3 3" visibility="hidden"/>
+      <circle id="nwc-dot" r="4.5" fill="var(--acc)" visibility="hidden"/>
+      <text x="${P}" y="${H-2}" fill="var(--txt3)" font-size="10">${fmtEUR(mn)}</text>
+      <text x="${P}" y="${P+2}" fill="var(--txt3)" font-size="10">${fmtEUR(mx)}</text>
+    </svg>`;
+  const svg = document.getElementById('nwc-svg');
+  const info = document.getElementById('nwc-info');
+  const show = clientX => {
+    const r = svg.getBoundingClientRect();
+    const i = Math.max(0, Math.min(pts.length - 1, Math.round((clientX - r.left) / r.width * (pts.length - 1))));
+    const cross = document.getElementById('nwc-cross'), dot = document.getElementById('nwc-dot');
+    cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', X(i)); dot.setAttribute('cy', Y(pts[i].v)); dot.setAttribute('visibility', 'visible');
+    info.innerHTML = `<b style="color:var(--txt)">${esc(pts[i].label)}</b> · <b style="color:var(--acc)">${fmtEUR(pts[i].v)}</b>`;
+  };
+  svg.addEventListener('pointerdown', e => { e.preventDefault(); svg.setPointerCapture(e.pointerId); show(e.clientX); });
+  svg.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') show(e.clientX); });
+  info.textContent = 'Toca e desliza no gráfico para ver a data e o valor';
 }
 // ══════════════════════════════════════════
 // CONTAS
