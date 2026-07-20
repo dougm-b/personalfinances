@@ -174,9 +174,14 @@
       "id": 1,
       "name": "Prestação / Renda da Casa",
       "category": "Casa",
-      "amount": 580,
+      "amount": 580.14,
       "day": 8,
-      "kind": "expense"
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     },
     {
       "id": 2,
