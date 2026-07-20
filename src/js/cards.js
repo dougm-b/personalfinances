@@ -1,3 +1,7 @@
+// utilizado total = compras avulsas (c.used) + o que falta pagar das prestações
+function cardUsed(c){
+  return round2((c.used||0) + (c.financedItems||[]).reduce((s,f) => s + finRemaining(c,f), 0));
+}
 // "em falta" calculado: total − prestações já debitadas (não é editado à mão)
 function finRemaining(c, f){
   if (!f.installment || !f.startMonth) return f.remaining || 0;
@@ -18,12 +22,13 @@ function finRemaining(c, f){
 function renderCards(){
   const el = document.getElementById('cards-list');
   el.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
-    const avail = c.limit ? round2(c.limit - (c.used||0)) : null;
+    const used = cardUsed(c);
+    const avail = c.limit ? round2(c.limit - used) : null;
     return `<div class="row" onclick="openCardDetail(${c.id})">
       <div class="row-emoji">💳</div>
       <div class="row-info"><div class="row-name">${esc(c.name)}</div>
         <div class="row-detail">${c.limit ? 'disponível ' + fmtEUR(avail) : 'limite não definido'}</div></div>
-      <div class="row-val">${fmtEUR(c.used)}${c.limit ? ' / ' + fmtEUR(c.limit) : ''}</div>
+      <div class="row-val">${fmtEUR(used)}${c.limit ? ' / ' + fmtEUR(c.limit) : ''}</div>
     </div>`;
   }).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>';
 }
@@ -33,15 +38,16 @@ function openCardDetail(id){
   const installmentsSum = (c.financedItems||[]).reduce((a,f)=>a+(f.installment||0),0);
   const monthDue = (c.monthlyDue||0) + installmentsSum;
   const dueInfo = c.dueDay ? `<div class="row-detail" style="margin-bottom:6px">Débito na conta: dia ${c.dueDay} de cada mês</div>` : '';
+  const used = cardUsed(c);
   let usage;
   if (c.limit) {
-    const pct = Math.min(100,(c.used/c.limit)*100);
+    const pct = Math.min(100,(used/c.limit)*100);
     const cls = pct > 80 ? 'red' : pct > 50 ? 'warn' : '';
-    usage = `<div class="progress-lbl"><span>Utilizado</span><span>${fmtEUR(c.used)} / ${fmtEUR(c.limit)}</span></div>
+    usage = `<div class="progress-lbl"><span>Utilizado</span><span>${fmtEUR(used)} / ${fmtEUR(c.limit)}</span></div>
       <div class="progress ${cls}"><div style="width:${pct}%"></div></div>
-      <div class="row-detail" style="margin-top:6px">Disponível: <b style="color:var(--txt2)">${fmtEUR(c.limit-(c.used||0))}</b></div>`;
+      <div class="row-detail" style="margin-top:6px">Disponível: <b style="color:var(--txt2)">${fmtEUR(c.limit-used)}</b> · ${fmtEUR(c.used||0)} avulso + ${fmtEUR(round2(used-(c.used||0)))} prestações por pagar</div>`;
   } else {
-    usage = `<div class="row-detail">Utilizado: <b style="color:var(--txt2)">${fmtEUR(c.used)}</b> (limite não definido)</div>`;
+    usage = `<div class="row-detail">Utilizado: <b style="color:var(--txt2)">${fmtEUR(used)}</b> (limite não definido)</div>`;
   }
   const items = (c.financedItems||[]).map(f => {
     const end = (f.startMonth && f.months) ? addMonthsKey(f.startMonth, f.months-1) : null;

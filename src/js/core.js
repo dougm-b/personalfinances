@@ -450,7 +450,7 @@ function openSettingsModal(){ document.getElementById('settings-modal').classLis
 // ══════════════════════════════════════════
 function totalAccounts(){ return state.accounts.reduce((a,c)=>a+(c.balance||0),0); }
 function totalInvestments(){ return state.investments.reduce((a,c)=>a+(c.balance||0),0); }
-function totalCardDebt(){ return state.creditCards.reduce((a,c)=>a+(c.used||0),0); }
+function totalCardDebt(){ return state.creditCards.reduce((a,c)=>a+cardUsed(c),0); }
 function monthTx(kind){
   const mk = todayKey().slice(0,7);
   return state.transactions.filter(t => t.kind===kind && monthKey(t.date)===mk).reduce((a,t)=>a+t.amount,0);

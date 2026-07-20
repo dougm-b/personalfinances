@@ -63,15 +63,16 @@ function updateDash(){
 
   const cardsEl = document.getElementById('d-cards');
   cardsEl.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
+    const used = cardUsed(c);
     if (!c.limit) {
       return `<div style="margin-bottom:10px">
-        <div class="progress-lbl"><span>${esc(c.name)}</span><span>utilizado ${fmtEUR(c.used)}</span></div>
+        <div class="progress-lbl"><span>${esc(c.name)}</span><span>utilizado ${fmtEUR(used)}</span></div>
       </div>`;
     }
-    const pct = Math.min(100, (c.used/c.limit)*100);
+    const pct = Math.min(100, (used/c.limit)*100);
     const cls = pct > 80 ? 'red' : pct > 50 ? 'warn' : '';
     return `<div style="margin-bottom:10px">
-      <div class="progress-lbl"><span>${esc(c.name)}</span><span>${fmtEUR(c.used)} / ${fmtEUR(c.limit)}</span></div>
+      <div class="progress-lbl"><span>${esc(c.name)}</span><span>${fmtEUR(used)} / ${fmtEUR(c.limit)}</span></div>
       <div class="progress ${cls}"><div style="width:${pct}%"></div></div>
     </div>`;
   }).join('') : '<div class="empty-state" style="padding:10px"><p>Sem cartões registados</p></div>';
