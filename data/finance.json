@@ -272,9 +272,20 @@
       "accountId": 1,
       "from": null,
       "to": null
+    },
+    {
+      "id": 13,
+      "name": "Ozempic",
+      "day": 15,
+      "category": "Utilidades",
+      "amount": 166,
+      "kind": "expense",
+      "accountId": 1,
+      "from": "2026-08",
+      "to": "2026-10"
     }
   ],
-  "nextBillId": 13,
+  "nextBillId": 14,
   "creditCards": [
     {
       "id": 1,
