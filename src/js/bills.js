@@ -33,7 +33,8 @@ function fixasItemsForMonth(M){
   state.recurringBills.forEach(b => {
     if ((b.from || '0000-01') <= M && M <= (b.to || '9999-12'))
       items.push({ key:'bill:'+b.id, name:b.name, day:b.day||1, amount:b.amount,
-        kind:b.kind==='income'?'income':'expense', category:b.category, accountId:b.accountId, bill:b });
+        kind: b.kind==='income' ? 'income' : b.kind==='transfer' ? 'transfer' : 'expense',
+        category:b.category, accountId:b.accountId, fromRef:b.fromRef, toRef:b.toRef, bill:b });
   });
   state.creditCards.forEach(c => (c.financedItems||[]).forEach(f => {
     if (!f.installment) return;
@@ -74,15 +75,16 @@ function settlementOf(key, M){ return (state.billSettlements||{})[key+'|'+M]; }
 function billItemRow(it, M, isFuture){
   const settled = settlementOf(it.key, M);
   const isInc = it.kind === 'income';
+  const isTr = it.kind === 'transfer';
   // só o VALOR fica riscado (em cinza); nome e detalhes mantêm as cores normais
   const style = settled ? 'text-decoration:line-through;color:var(--txt3)' : '';
   const check = `<input type="checkbox" ${settled?'checked':''} onclick="event.stopPropagation();toggleFixedItem('${it.key}','${M}')" title="${settled?'Desmarcar (volta a não pago)':'Marcar como liquidado (não mexe no saldo da conta)'}" style="width:18px;height:18px;accent-color:var(--txt3)"/>`;
   const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : it.cardBill ? `openCardDetail(${it.cardBill.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
   return `<div class="row" onclick="${open}">
-    <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
+    <div class="row-emoji">${isTr?'🔁':(CATEGORY_EMOJI[it.category]||'📄')}</div>
     <div class="row-info"><div class="row-name">${esc(it.name)}</div>
-      <div class="row-detail">dia ${it.day} · ${esc(it.category)} · ${isInc?'credita':'debita'}${it.bill&&it.bill.auto==='rooms'?' · sincronizada com a Casa':''}${it.fin?' · prestação do cartão':''}</div></div>
-    <div class="row-val ${settled?'':(isInc?'pos':'')}" style="${style}">${it.amount!=null ? (isInc?'+':'') + fmtEUR(it.amount) : 'variável'}</div>
+      <div class="row-detail">dia ${it.day} · ${isTr ? esc((getEntity(it.fromRef)||{}).name||'?') + ' → ' + esc((getEntity(it.toRef)||{}).name||'?') : esc(it.category) + ' · ' + (isInc?'credita':'debita')}${it.bill&&it.bill.auto==='rooms'?' · sincronizada com a Casa':''}${it.fin?' · prestação do cartão':''}</div></div>
+    <div class="row-val ${settled?'':(isInc?'pos':'')}" style="${style}${isTr&&!settled?'color:var(--blue)':''}">${it.amount!=null ? (isInc?'+':'') + fmtEUR(it.amount) : 'variável'}${isTr?' ⇄':''}</div>
     ${check}
   </div>`;
 }
@@ -91,7 +93,7 @@ function renderBills(){
   billsMonth = M;
   document.getElementById('bills-month-label').textContent = fmtMonth(M);
   const items = fixasItemsForMonth(M);
-  const exp = items.filter(i=>i.kind!=='income').reduce((a,i)=>a+(i.amount||0),0);
+  const exp = items.filter(i=>i.kind==='expense').reduce((a,i)=>a+(i.amount||0),0);
   const inc = items.filter(i=>i.kind==='income').reduce((a,i)=>a+(i.amount||0),0);
   document.getElementById('bills-total-exp').textContent = fmtEUR(exp);
   document.getElementById('bills-total-inc').textContent = fmtEUR(inc);
@@ -149,10 +151,14 @@ function settleFixedItem(key, M){
   if (settlementOf(key, M)) { showToast('⚠️ Já foi liquidado este mês'); return; }
   const it = fixasItemsForMonth(M).find(x => x.key === key);
   if (!it || it.amount == null) { showToast('Define primeiro o valor deste item'); return; }
-  const t = { id: state.nextTxId++, desc: it.name, kind: it.kind,
-    amount: it.kind==='income' ? Math.abs(it.amount) : -Math.abs(it.amount),
-    date: M + '-' + String(it.day).padStart(2,'0'), category: it.category,
-    accountId: it.accountId||null, applied:false, ts: Date.now() };
+  const t = it.kind === 'transfer'
+    ? { id: state.nextTxId++, desc: it.name, kind:'transfer', amount: Math.abs(it.amount),
+        fromRef: it.fromRef, toRef: it.toRef, date: M + '-' + String(it.day).padStart(2,'0'),
+        category:null, accountId:null, applied:false, ts: Date.now() }
+    : { id: state.nextTxId++, desc: it.name, kind: it.kind,
+        amount: it.kind==='income' ? Math.abs(it.amount) : -Math.abs(it.amount),
+        date: M + '-' + String(it.day).padStart(2,'0'), category: it.category,
+        accountId: it.accountId||null, applied:false, ts: Date.now() };
   state.transactions.push(t);
   state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
   if (it.cardBill) {
@@ -164,10 +170,20 @@ function settleFixedItem(key, M){
   save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
 }
 
+function onBillKindChange(){
+  const isTr = document.getElementById('bill-kind').value === 'transfer';
+  document.getElementById('bill-normal-fields').style.display = isTr ? 'none' : '';
+  document.getElementById('bill-transfer-fields').style.display = isTr ? '' : 'none';
+}
 function openBillModal(id){
   populateCategorySelect(document.getElementById('bill-category'), false);
   const b0 = id ? state.recurringBills.find(x=>x.id===id) : null;
   fillAccountSelect(document.getElementById('bill-account'), b0 ? b0.accountId : null);
+  const trOpts = entityOptions().map(o=>`<option value="${esc(o.ref)}">${esc(o.name)}</option>`).join('');
+  document.getElementById('bill-tr-from').innerHTML = trOpts;
+  document.getElementById('bill-tr-to').innerHTML = trOpts;
+  if (b0 && b0.fromRef) document.getElementById('bill-tr-from').value = b0.fromRef;
+  if (b0 && b0.toRef) document.getElementById('bill-tr-to').value = b0.toRef;
   // a receita "Renda dos Quartos" e sincronizada com a aba Casa - valor nao editavel aqui
   document.getElementById('bill-amount').disabled = !!(b0 && b0.auto === 'rooms');
   document.getElementById('bill-id').value = id||'';
@@ -191,6 +207,7 @@ function openBillModal(id){
     document.getElementById('bill-from').value = '';
     document.getElementById('bill-to').value = '';
   }
+  onBillKindChange();
   document.getElementById('bill-modal').classList.add('open');
 }
 function saveBill(){
@@ -203,8 +220,11 @@ function saveBill(){
     amount: amountVal==='' ? null : parseFloat(amountVal),
     kind: document.getElementById('bill-kind').value,
     accountId: parseInt(document.getElementById('bill-account').value)||null,
+    fromRef: document.getElementById('bill-tr-from').value || null,
+    toRef: document.getElementById('bill-tr-to').value || null,
     from: document.getElementById('bill-from').value || null,
     to: document.getElementById('bill-to').value || null };
+  if (data.kind === 'transfer' && data.fromRef === data.toRef) { showToast('Origem e destino têm de ser diferentes'); return; }
   if (id) {
     const b = state.recurringBills.find(x=>x.id==id);
     if (b.auto === 'rooms') { data.amount = b.amount; data.kind = 'income'; } // valor vem da aba Casa
@@ -227,7 +247,16 @@ function registerBillPayment(){
   const amt = b.amount!=null ? b.amount : parseFloat(document.getElementById('bill-amount').value) || 0;
   if (!amt) { showToast('Indica o valor deste mês'); return; }
   const accountId = parseInt(document.getElementById('bill-account').value)||null;
-  const isInc = (document.getElementById('bill-kind').value || b.kind) === 'income';
+  const kindNow = document.getElementById('bill-kind').value || b.kind;
+  if (kindNow === 'transfer') {
+    const t = { id: state.nextTxId++, desc: b.name, kind:'transfer', amount: Math.abs(amt),
+      fromRef: b.fromRef, toRef: b.toRef, date: todayKey(), category:null, accountId:null, applied:true, ts: Date.now() };
+    state.transactions.push(t);
+    applyTransfer(t, 1);
+    state.billSettlements['bill:'+b.id+'|'+M] = { txId: t.id, when: Date.now() };
+    closeModal('bill-modal'); save(); showToast('✅ Transferência efetuada entre as contas'); return;
+  }
+  const isInc = kindNow === 'income';
   const t = { id: state.nextTxId++, desc: b.name, kind: isInc?'income':'expense',
     amount: isInc ? Math.abs(amt) : -Math.abs(amt),
     date: todayKey(), category: b.category, accountId, applied:true, ts: Date.now() };

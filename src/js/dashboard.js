@@ -27,7 +27,7 @@ function updateDash(){
     const today = todayKey();
     // resto do mês atual: fixas ainda por liquidar
     let fixasNet = fixasItemsForMonth(curMonth)
-      .filter(it => it.amount != null && !settlementOf(it.key, curMonth)
+      .filter(it => it.kind !== 'transfer' && it.amount != null && !settlementOf(it.key, curMonth)
         && (curMonth + '-' + String(it.day).padStart(2,'0')) >= today)
       .reduce((s,it) => s + (it.kind==='income' ? it.amount : -it.amount), 0);
     // meses seguintes: todos os movimentos fixos configurados (rendas,
@@ -36,7 +36,7 @@ function updateDash(){
     while (m < targetM) {
       m = nextMonth(m);
       fixasNet += fixasItemsForMonth(m)
-        .filter(it => it.amount != null)
+        .filter(it => it.kind !== 'transfer' && it.amount != null)
         .reduce((s,it) => s + (it.kind==='income' ? it.amount : -it.amount), 0);
     }
     const plannedSum = state.plannedTx
@@ -166,7 +166,7 @@ function openMonthBalance(){
   const incTx = txs.filter(t => t.kind === 'income');
   const expTx = txs.filter(t => t.kind === 'expense');
   // fixas do mês ainda por liquidar (pendentes)
-  const pending = fixasItemsForMonth(M).filter(it => it.amount != null && !settlementOf(it.key, M)
+  const pending = fixasItemsForMonth(M).filter(it => it.kind !== 'transfer' && it.amount != null && !settlementOf(it.key, M)
     && (M + '-' + String(it.day).padStart(2,'0')) >= today);
   const pendInc = pending.filter(i => i.kind === 'income');
   const pendExp = pending.filter(i => i.kind !== 'income');
