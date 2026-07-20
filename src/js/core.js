@@ -220,6 +220,7 @@ function migrateState(loaded){
 // sincronizações derivadas do estado — correm após cada load
 function syncDerived(){
   ensureRoomsBill();
+  reconcileSettlements();
 }
 
 // ══════════════════════════════════════════
