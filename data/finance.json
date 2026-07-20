@@ -238,6 +238,15 @@
           "installment": 333.35,
           "startMonth": "2026-07",
           "months": 3
+        },
+        {
+          "id": 3,
+          "desc": "Revolut 1100",
+          "total": 1109.3,
+          "remaining": 0,
+          "installment": 183.34,
+          "startMonth": "2026-07",
+          "months": 6
         }
       ]
     },
@@ -251,7 +260,7 @@
     }
   ],
   "nextCardId": 4,
-  "nextFinancedId": 3,
+  "nextFinancedId": 4,
   "plannedTx": [],
   "nextPlannedId": 1,
   "investments": [
