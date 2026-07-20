@@ -261,9 +261,20 @@
       "auto": "rooms",
       "accountId": null,
       "amount": 900
+    },
+    {
+      "id": 12,
+      "name": "Subsídio Alimentação",
+      "day": 1,
+      "category": "Alimentação",
+      "amount": 187,
+      "kind": "expense",
+      "accountId": 1,
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 12,
+  "nextBillId": 13,
   "creditCards": [
     {
       "id": 1,
