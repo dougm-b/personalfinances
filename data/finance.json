@@ -223,7 +223,8 @@
       "limit": 1000,
       "used": 0,
       "monthlyDue": 0,
-      "financedItems": []
+      "financedItems": [],
+      "dueDay": 3
     },
     {
       "id": 2,
