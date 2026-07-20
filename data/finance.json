@@ -292,8 +292,8 @@
       "amount": 200,
       "kind": "expense",
       "accountId": 1,
-      "from": "2026-08",
-      "to": "2026-12"
+      "from": null,
+      "to": null
     }
   ],
   "nextBillId": 15,
