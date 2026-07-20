@@ -190,3 +190,24 @@ function openMonthBalance(){
     <div class="note-box">Sobra = saldo à ordem atual + receitas fixas por liquidar − despesas fixas por liquidar deste mês.</div>`;
   document.getElementById('month-balance-modal').classList.add('open');
 }
+
+// composição do património: cada investimento e cada conta à ordem
+function openNetWorthDetail(){
+  const row = (emoji, name, val, sub) => `<div class="row" style="cursor:default">
+    <div class="row-emoji">${emoji}</div>
+    <div class="row-info"><div class="row-name">${esc(name)}</div>${sub?`<div class="row-detail">${sub}</div>`:''}</div>
+    <div class="row-val">${fmtEUR(val)}</div></div>`;
+  const invRows = state.investments.map(i => row('📈', i.name, i.balance||0, '')).join('');
+  const invTotal = totalInvestments();
+  const ordem = state.accounts.filter(a => a.type === 'À ordem');
+  const ordemRows = ordem.map(a => row('🏦', a.name, a.balance||0, a.updatedAt ? 'atualizada ' + fmtDateTime(a.updatedAt) : '')).join('');
+  const ordemTotal = ordem.reduce((s,a) => s + (a.balance||0), 0);
+  const outras = state.accounts.filter(a => a.type !== 'À ordem');
+  document.getElementById('nw-body').innerHTML =
+    `<div class="form-label">Investimentos (${fmtEUR(invTotal)}):</div>` + (invRows || '<div class="row-detail">nenhum</div>') +
+    `<div class="form-label" style="margin-top:10px">Contas à ordem (${fmtEUR(ordemTotal)}):</div>` + (ordemRows || '<div class="row-detail">nenhuma</div>') +
+    `<div class="stat-box" style="margin-top:12px"><div class="l">Património líquido a hoje</div><div class="v">${fmtEUR(round2(invTotal + ordemTotal))}</div></div>` +
+    (outras.length ? `<div class="note-box" style="margin-top:10px">Fora do cálculo (não são à ordem): ${outras.map(a => esc(a.name) + ' ' + fmtEUR(a.balance||0)).join(' · ')}</div>` : '') +
+    (dashOffset > 0 ? '<div class="note-box" style="margin-top:8px">Estes são os valores a hoje — o valor no card está em modo simulação para ' + document.getElementById('d-sim-label-txt').textContent.replace(' ▾','') + '.</div>' : '');
+  document.getElementById('networth-modal').classList.add('open');
+}

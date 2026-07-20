@@ -1,11 +1,13 @@
     <!-- ══════════ DASHBOARD ══════════ -->
     <div class="screen active" id="dash-screen">
       <div class="card hero">
-        <div class="hero-lbl" id="d-net-lbl">Património líquido</div>
-        <div class="hero-val" id="d-networth">€0</div>
-        <div class="hero-sub">
-          <span>Investido <b id="d-invest">€0</b></span>
-          <span>À ordem <b id="d-ordem">€0</b></span>
+        <div onclick="openNetWorthDetail()" style="cursor:pointer">
+          <div class="hero-lbl" id="d-net-lbl">Património líquido</div>
+          <div class="hero-val" id="d-networth">€0</div>
+          <div class="hero-sub">
+            <span>Investido <b id="d-invest">€0</b></span>
+            <span>À ordem <b id="d-ordem">€0</b></span>
+          </div>
         </div>
         <div class="sim-nav">
           <button class="sim-btn" onclick="dashShift(-1)">‹</button>
