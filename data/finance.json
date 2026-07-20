@@ -250,7 +250,8 @@
           "startMonth": "2026-07",
           "months": 6
         }
-      ]
+      ],
+      "dueDay": 11
     },
     {
       "id": 3,
