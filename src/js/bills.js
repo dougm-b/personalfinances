@@ -22,9 +22,15 @@ function fixasItemsForMonth(M){
     const start = f.startMonth || '0000-01';
     const end = f.months ? addMonthsKey(start, f.months - 1) : '9999-12';
     if (start <= M && M <= end)
-      items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day:1, amount:f.installment,
+      items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day: c.dueDay||1, amount:f.installment,
         kind:'expense', category:'Cartão de Crédito', fin:f, card:c });
   }));
+  // débitos mensais do empréstimo da casa aparecem como despesa fixa no período
+  ((state.house.loan||{}).paymentPlans||[]).forEach(p => {
+    if (p.from <= M && M <= p.to)
+      items.push({ key:'plan:'+p.id, name:'Empréstimo ' + state.house.loan.credor, day: 1, amount: p.amount,
+        kind:'expense', category:'Casa', accountId: p.accountId||null, plan:p });
+  });
   return items.sort((a,b) => a.day - b.day);
 }
 function settlementOf(key, M){ return (state.billSettlements||{})[key+'|'+M]; }
@@ -35,7 +41,7 @@ function billItemRow(it, M, isFuture){
   const check = (!settled && isFuture)
     ? `<input type="checkbox" onclick="event.stopPropagation();settleFixedItem('${it.key}','${M}')" title="Marcar como liquidado (não mexe no saldo da conta)" style="width:18px;height:18px;accent-color:var(--good)"/>`
     : (settled ? '<span class="stat-badge badge-ok">liquidado</span>' : '');
-  const open = it.bill ? `openBillModal(${it.bill.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
+  const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
   return `<div class="row" onclick="${open}">
     <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
     <div class="row-info" style="${style}"><div class="row-name">${esc(it.name)}</div>

@@ -5,19 +5,28 @@ let activeInvestId = null;
 function renderInvest(){
   document.getElementById('invest-total').textContent = fmtEUR(totalInvestments());
   const el = document.getElementById('invest-list');
-  el.innerHTML = state.investments.map(inv => {
-    const hist = (inv.contributions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4)
-      .map(c => `<div class="row-detail">${c.date} · ${c.amount>=0?'+':''}${fmtEUR(c.amount)}${c.note?' · '+esc(c.note):''}</div>`).join('');
-    return `<div class="card">
+  el.innerHTML = state.investments.map(inv => `<div class="card" onclick="openInvestDetail('${inv.id}')" style="cursor:pointer">
       <div class="card-title">${esc(inv.name)}
         <span style="display:flex;gap:6px">
-          <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="openInvestFixModal('${inv.id}')">✎ Corrigir valor</button>
-          <button class="add-btn" onclick="openInvestModal('${inv.id}')">+ Movimento</button>
+          <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="event.stopPropagation();openInvestFixModal('${inv.id}')">✎ Corrigir valor</button>
+          <button class="add-btn" onclick="event.stopPropagation();openInvestModal('${inv.id}')">+ Movimento</button>
         </span></div>
       <div class="hero-val" style="font-size:22px">${fmtEUR(inv.balance)}</div>
-      <div style="margin-top:8px">${hist || '<div class="row-detail">Sem movimentos registados</div>'}</div>
-    </div>`;
-  }).join('');
+      <div class="row-detail" style="margin-top:4px">toca para ver o histórico de movimentos</div>
+    </div>`).join('');
+}
+function openInvestDetail(id){
+  const inv = state.investments.find(i=>i.id===id);
+  document.getElementById('invd-title').textContent = inv.name;
+  const hist = (inv.contributions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('invd-body').innerHTML =
+    `<div class="stat-box" style="margin-bottom:12px"><div class="l">Valor atual</div><div class="v">${fmtEUR(inv.balance)}</div></div>` +
+    (hist.length ? '<div class="timeline">' + hist.map(c => `
+      <div class="tl-item"><div class="tl-dot" style="background:${c.amount>=0?'var(--good)':'var(--red)'}"></div>
+        <div class="tl-info"><div class="t">${c.note?esc(c.note):'Movimento'}</div><div class="s">${c.date}</div></div>
+        <div class="tl-val" style="color:${c.amount>=0?'var(--good)':'var(--red)'}">${c.amount>=0?'+':''}${fmtEUR(c.amount)}</div>
+      </div>`).join('') + '</div>' : '<div class="row-detail">Sem movimentos registados</div>');
+  document.getElementById('invest-detail-modal').classList.add('open');
 }
 function openInvestModal(id){
   activeInvestId = id;

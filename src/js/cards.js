@@ -18,6 +18,7 @@ function openCardDetail(id){
   document.getElementById('cd-title').textContent = c.name;
   const installmentsSum = (c.financedItems||[]).reduce((a,f)=>a+(f.installment||0),0);
   const monthDue = (c.monthlyDue||0) + installmentsSum;
+  const dueInfo = c.dueDay ? `<div class="row-detail" style="margin-bottom:6px">Débito na conta: dia ${c.dueDay} de cada mês</div>` : '';
   let usage;
   if (c.limit) {
     const pct = Math.min(100,(c.used/c.limit)*100);
@@ -39,7 +40,7 @@ function openCardDetail(id){
   }).join('');
   const hist = (c.history||[]).slice(-5).reverse().map(h =>
     `<div class="row-detail">${h.date} · ${esc(h.desc)} · ${h.amount>0?'+':''}${fmtEUR(h.amount)}</div>`).join('');
-  document.getElementById('cd-body').innerHTML = usage +
+  document.getElementById('cd-body').innerHTML = dueInfo + usage +
     `<div class="stat-box" style="margin:10px 0"><div class="l">A pagar este mês</div><div class="v">${fmtEUR(monthDue)}</div>
       <div class="row-detail">${fmtEUR(c.monthlyDue||0)} despesas do mês${installmentsSum?` + ${fmtEUR(installmentsSum)} prestações`:''}</div></div>` +
     (items ? `<div class="form-label">Compras a prestações (aparecem na aba Fixas até ao último mês):</div>${items}` : '') +
@@ -82,11 +83,13 @@ function openCardModal(id){
     document.getElementById('card-limit').value = c.limit || '';
     document.getElementById('card-used').value = c.used;
     document.getElementById('card-monthly').value = c.monthlyDue || '';
+    document.getElementById('card-dueday').value = c.dueDay || '';
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
     document.getElementById('card-used').value = '';
     document.getElementById('card-monthly').value = '';
+    document.getElementById('card-dueday').value = '';
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -96,7 +99,8 @@ function saveCard(){
   if (!name) { showToast('Indica um nome'); return; }
   const data = { name, limit: parseFloat(document.getElementById('card-limit').value)||0,
     used: parseFloat(document.getElementById('card-used').value)||0,
-    monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0 };
+    monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
+    dueDay: parseInt(document.getElementById('card-dueday').value)||null };
   if (id) { Object.assign(state.creditCards.find(c=>c.id==id), data); }
   else { state.creditCards.push({ id: state.nextCardId++, financedItems:[], ...data }); }
   closeModal('card-modal'); save(); showToast('✅ Cartão guardado');
@@ -139,8 +143,10 @@ function saveFinancedItem(){
   c.financedItems = c.financedItems || [];
   const instVal = document.getElementById('fin-installment').value;
   const monthsVal = document.getElementById('fin-months').value;
-  const data = { desc, total: parseFloat(document.getElementById('fin-total').value)||0,
-    remaining: parseFloat(document.getElementById('fin-remaining').value)||0,
+  const totalVal = parseFloat(document.getElementById('fin-total').value)||0;
+  const remVal = document.getElementById('fin-remaining').value;
+  const data = { desc, total: totalVal,
+    remaining: remVal==='' ? totalVal : parseFloat(remVal)||0,
     installment: instVal==='' ? null : parseFloat(instVal)||0,
     startMonth: document.getElementById('fin-start').value || todayKey().slice(0,7),
     months: monthsVal==='' ? null : parseInt(monthsVal) };

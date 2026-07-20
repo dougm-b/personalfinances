@@ -98,7 +98,9 @@ sempre.
 - **Fixas por mês**: a aba tem um seletor de mês (`billsMonth`); os itens de
   um mês vêm de `fixasItemsForMonth(M)` = fixas dentro do prazo (`from`/`to`
   opcionais) + prestações dos cartões (`financedItems` com `installment`,
-  `startMonth`, `months`). Liquidações em `state.billSettlements`
+  `startMonth`, `months`; dia = `card.dueDay`) + débitos mensais do
+  empréstimo (`paymentPlans`, key `plan:<id>`; a cobrança automática regista
+  a liquidação do mês para não duplicar com o checkbox). Liquidações em `state.billSettlements`
   (`'<key>|<YYYY-MM>': {txId}`) — bloqueiam pagamentos duplicados no mês e
   riscam o item. O checkbox "liquidado" cria a transação com `applied:false`
   (não mexe no saldo); o botão "Registar pagamento" cria com `applied:true`

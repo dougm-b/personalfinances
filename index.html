@@ -534,7 +534,10 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">Limite (€)</label><input class="form-input" id="card-limit" type="number" step="0.01"/></div>
       <div class="form-group"><label class="form-label">Valor Utilizado (€)</label><input class="form-input" id="card-used" type="number" step="0.01"/></div>
     </div>
-    <div class="form-group"><label class="form-label">A pagar este mês (€) — despesas do mês</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">A pagar este mês (€)</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
+      <div class="form-group"><label class="form-label">Dia do débito no mês</label><input class="form-input" id="card-dueday" type="number" min="1" max="31" placeholder="Ex: 11"/></div>
+    </div>
     <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
   </div>
@@ -618,6 +621,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   </div>
 </div>
 
+
+<div class="modal-overlay" id="invest-detail-modal">
+  <div class="modal">
+    <h3><span id="invd-title">Investimento</span><button class="modal-close" onclick="closeModal('invest-detail-modal')">✕</button></h3>
+    <div id="invd-body"></div>
+  </div>
+</div>
 <div class="modal-overlay" id="house-modal">
   <div class="modal">
     <h3>Saldo em Dívida Atual <button class="modal-close" onclick="closeModal('house-modal')">✕</button></h3>
@@ -1562,9 +1572,15 @@ function fixasItemsForMonth(M){
     const start = f.startMonth || '0000-01';
     const end = f.months ? addMonthsKey(start, f.months - 1) : '9999-12';
     if (start <= M && M <= end)
-      items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day:1, amount:f.installment,
+      items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day: c.dueDay||1, amount:f.installment,
         kind:'expense', category:'Cartão de Crédito', fin:f, card:c });
   }));
+  // débitos mensais do empréstimo da casa aparecem como despesa fixa no período
+  ((state.house.loan||{}).paymentPlans||[]).forEach(p => {
+    if (p.from <= M && M <= p.to)
+      items.push({ key:'plan:'+p.id, name:'Empréstimo ' + state.house.loan.credor, day: 1, amount: p.amount,
+        kind:'expense', category:'Casa', accountId: p.accountId||null, plan:p });
+  });
   return items.sort((a,b) => a.day - b.day);
 }
 function settlementOf(key, M){ return (state.billSettlements||{})[key+'|'+M]; }
@@ -1575,7 +1591,7 @@ function billItemRow(it, M, isFuture){
   const check = (!settled && isFuture)
     ? `<input type="checkbox" onclick="event.stopPropagation();settleFixedItem('${it.key}','${M}')" title="Marcar como liquidado (não mexe no saldo da conta)" style="width:18px;height:18px;accent-color:var(--good)"/>`
     : (settled ? '<span class="stat-badge badge-ok">liquidado</span>' : '');
-  const open = it.bill ? `openBillModal(${it.bill.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
+  const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
   return `<div class="row" onclick="${open}">
     <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
     <div class="row-info" style="${style}"><div class="row-name">${esc(it.name)}</div>
@@ -1788,6 +1804,7 @@ function openCardDetail(id){
   document.getElementById('cd-title').textContent = c.name;
   const installmentsSum = (c.financedItems||[]).reduce((a,f)=>a+(f.installment||0),0);
   const monthDue = (c.monthlyDue||0) + installmentsSum;
+  const dueInfo = c.dueDay ? `<div class="row-detail" style="margin-bottom:6px">Débito na conta: dia ${c.dueDay} de cada mês</div>` : '';
   let usage;
   if (c.limit) {
     const pct = Math.min(100,(c.used/c.limit)*100);
@@ -1809,7 +1826,7 @@ function openCardDetail(id){
   }).join('');
   const hist = (c.history||[]).slice(-5).reverse().map(h =>
     `<div class="row-detail">${h.date} · ${esc(h.desc)} · ${h.amount>0?'+':''}${fmtEUR(h.amount)}</div>`).join('');
-  document.getElementById('cd-body').innerHTML = usage +
+  document.getElementById('cd-body').innerHTML = dueInfo + usage +
     `<div class="stat-box" style="margin:10px 0"><div class="l">A pagar este mês</div><div class="v">${fmtEUR(monthDue)}</div>
       <div class="row-detail">${fmtEUR(c.monthlyDue||0)} despesas do mês${installmentsSum?` + ${fmtEUR(installmentsSum)} prestações`:''}</div></div>` +
     (items ? `<div class="form-label">Compras a prestações (aparecem na aba Fixas até ao último mês):</div>${items}` : '') +
@@ -1852,11 +1869,13 @@ function openCardModal(id){
     document.getElementById('card-limit').value = c.limit || '';
     document.getElementById('card-used').value = c.used;
     document.getElementById('card-monthly').value = c.monthlyDue || '';
+    document.getElementById('card-dueday').value = c.dueDay || '';
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
     document.getElementById('card-used').value = '';
     document.getElementById('card-monthly').value = '';
+    document.getElementById('card-dueday').value = '';
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -1866,7 +1885,8 @@ function saveCard(){
   if (!name) { showToast('Indica um nome'); return; }
   const data = { name, limit: parseFloat(document.getElementById('card-limit').value)||0,
     used: parseFloat(document.getElementById('card-used').value)||0,
-    monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0 };
+    monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
+    dueDay: parseInt(document.getElementById('card-dueday').value)||null };
   if (id) { Object.assign(state.creditCards.find(c=>c.id==id), data); }
   else { state.creditCards.push({ id: state.nextCardId++, financedItems:[], ...data }); }
   closeModal('card-modal'); save(); showToast('✅ Cartão guardado');
@@ -1909,8 +1929,10 @@ function saveFinancedItem(){
   c.financedItems = c.financedItems || [];
   const instVal = document.getElementById('fin-installment').value;
   const monthsVal = document.getElementById('fin-months').value;
-  const data = { desc, total: parseFloat(document.getElementById('fin-total').value)||0,
-    remaining: parseFloat(document.getElementById('fin-remaining').value)||0,
+  const totalVal = parseFloat(document.getElementById('fin-total').value)||0;
+  const remVal = document.getElementById('fin-remaining').value;
+  const data = { desc, total: totalVal,
+    remaining: remVal==='' ? totalVal : parseFloat(remVal)||0,
     installment: instVal==='' ? null : parseFloat(instVal)||0,
     startMonth: document.getElementById('fin-start').value || todayKey().slice(0,7),
     months: monthsVal==='' ? null : parseInt(monthsVal) };
@@ -1933,19 +1955,28 @@ let activeInvestId = null;
 function renderInvest(){
   document.getElementById('invest-total').textContent = fmtEUR(totalInvestments());
   const el = document.getElementById('invest-list');
-  el.innerHTML = state.investments.map(inv => {
-    const hist = (inv.contributions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4)
-      .map(c => `<div class="row-detail">${c.date} · ${c.amount>=0?'+':''}${fmtEUR(c.amount)}${c.note?' · '+esc(c.note):''}</div>`).join('');
-    return `<div class="card">
+  el.innerHTML = state.investments.map(inv => `<div class="card" onclick="openInvestDetail('${inv.id}')" style="cursor:pointer">
       <div class="card-title">${esc(inv.name)}
         <span style="display:flex;gap:6px">
-          <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="openInvestFixModal('${inv.id}')">✎ Corrigir valor</button>
-          <button class="add-btn" onclick="openInvestModal('${inv.id}')">+ Movimento</button>
+          <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="event.stopPropagation();openInvestFixModal('${inv.id}')">✎ Corrigir valor</button>
+          <button class="add-btn" onclick="event.stopPropagation();openInvestModal('${inv.id}')">+ Movimento</button>
         </span></div>
       <div class="hero-val" style="font-size:22px">${fmtEUR(inv.balance)}</div>
-      <div style="margin-top:8px">${hist || '<div class="row-detail">Sem movimentos registados</div>'}</div>
-    </div>`;
-  }).join('');
+      <div class="row-detail" style="margin-top:4px">toca para ver o histórico de movimentos</div>
+    </div>`).join('');
+}
+function openInvestDetail(id){
+  const inv = state.investments.find(i=>i.id===id);
+  document.getElementById('invd-title').textContent = inv.name;
+  const hist = (inv.contributions||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('invd-body').innerHTML =
+    `<div class="stat-box" style="margin-bottom:12px"><div class="l">Valor atual</div><div class="v">${fmtEUR(inv.balance)}</div></div>` +
+    (hist.length ? '<div class="timeline">' + hist.map(c => `
+      <div class="tl-item"><div class="tl-dot" style="background:${c.amount>=0?'var(--good)':'var(--red)'}"></div>
+        <div class="tl-info"><div class="t">${c.note?esc(c.note):'Movimento'}</div><div class="s">${c.date}</div></div>
+        <div class="tl-val" style="color:${c.amount>=0?'var(--good)':'var(--red)'}">${c.amount>=0?'+':''}${fmtEUR(c.amount)}</div>
+      </div>`).join('') + '</div>' : '<div class="row-detail">Sem movimentos registados</div>');
+  document.getElementById('invest-detail-modal').classList.add('open');
 }
 function openInvestModal(id){
   activeInvestId = id;
@@ -2085,13 +2116,14 @@ function runLoanPlanCharges(){
     let m = p.chargedUntil;
     while (m < cur) {
       m = nextMonth(m);
-      if (p.from <= m && m <= p.to) {
+      if (p.from <= m && m <= p.to && !settlementOf('plan:'+p.id, m)) {
         const t = { id: state.nextTxId++,
           desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
           kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
-          category:'Casa', accountId: p.accountId, applied:true };
+          category:'Casa', accountId: p.accountId, applied:true, ts: Date.now() };
         state.transactions.push(t);
         applyTxBalance(t, 1);
+        state.billSettlements['plan:'+p.id+'|'+m] = { txId: t.id, when: Date.now() };
         changed = true;
       }
     }

@@ -47,13 +47,14 @@ function runLoanPlanCharges(){
     let m = p.chargedUntil;
     while (m < cur) {
       m = nextMonth(m);
-      if (p.from <= m && m <= p.to) {
+      if (p.from <= m && m <= p.to && !settlementOf('plan:'+p.id, m)) {
         const t = { id: state.nextTxId++,
           desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
           kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
-          category:'Casa', accountId: p.accountId, applied:true };
+          category:'Casa', accountId: p.accountId, applied:true, ts: Date.now() };
         state.transactions.push(t);
         applyTxBalance(t, 1);
+        state.billSettlements['plan:'+p.id+'|'+m] = { txId: t.id, when: Date.now() };
         changed = true;
       }
     }
