@@ -194,11 +194,13 @@
     {
       "id": 10,
       "name": "Salário Randstad",
-      "day": 30,
+      "day": 1,
       "category": "Utilidades",
       "amount": 795.92,
       "kind": "income",
-      "accountId": 1
+      "accountId": 1,
+      "from": null,
+      "to": null
     },
     {
       "id": 11,
