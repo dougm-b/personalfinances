@@ -1,19 +1,27 @@
 // ══════════════════════════════════════════
 // CONTAS
 // ══════════════════════════════════════════
-function renderAccounts(){
-  document.getElementById('acc-total').textContent = fmtEUR(totalAccounts());
-  document.getElementById('acc-invest-total').textContent = fmtEUR(totalInvestments());
-  const el = document.getElementById('accounts-list');
-  el.innerHTML = state.accounts.length ? state.accounts.map(a => {
-    const nPlanned = state.plannedTx.filter(p => p.accountId === a.id).length;
-    return `
+function accountRow(a){
+  const nPlanned = state.plannedTx.filter(p => p.accountId === a.id).length;
+  const emoji = a.type === 'Profissional' ? '💼' : '🏦';
+  return `
     <div class="row" onclick="openAccountDetail(${a.id})">
-      <div class="row-emoji">🏦</div>
+      <div class="row-emoji">${emoji}</div>
       <div class="row-info"><div class="row-name">${esc(a.name)}</div><div class="row-detail">${esc(a.type)}${a.updatedAt ? ' · atualizada ' + fmtDateTime(a.updatedAt) : ''}${nPlanned ? ` · ${nPlanned} previsto${nPlanned>1?'s':''}` : ''}</div></div>
       <div class="row-val">${fmtEUR(a.balance)}</div>
     </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">🏦</div><p>Ainda sem contas</p></div>';
+}
+function renderAccounts(){
+  // contas Profissional ficam à parte e fora do património/fixas
+  const pers = state.accounts.filter(a => a.type !== 'Profissional');
+  const prof = state.accounts.filter(a => a.type === 'Profissional');
+  document.getElementById('acc-total').textContent = fmtEUR(pers.reduce((s,a) => s + (a.balance||0), 0));
+  document.getElementById('acc-invest-total').textContent = fmtEUR(totalInvestments());
+  const el = document.getElementById('accounts-list');
+  el.innerHTML = (pers.length ? pers.map(accountRow).join('') : '<div class="empty-state"><div class="icon">🏦</div><p>Ainda sem contas</p></div>')
+    + (prof.length ? `<div class="section-hdr" style="margin-top:20px"><h3>Profissional</h3></div>
+      <div class="note-box" style="margin-bottom:8px">Contas da empresa — fora do património líquido e das fixas. Só impactam as tuas contas quando fazes transferências de/para elas (entradas e saídas de capital).</div>`
+      + prof.map(accountRow).join('') : '');
 }
 function openAccountDetail(id){
   const a = state.accounts.find(x => x.id === id);

@@ -203,6 +203,7 @@ function openNetWorthDetail(){
   const ordemRows = ordem.map(a => row('🏦', a.name, a.balance||0, a.updatedAt ? 'atualizada ' + fmtDateTime(a.updatedAt) : '')).join('');
   const ordemTotal = ordem.reduce((s,a) => s + (a.balance||0), 0);
   const outras = state.accounts.filter(a => a.type !== 'À ordem');
+  // (inclui contas Profissional — fora do património por definição)
   document.getElementById('nw-body').innerHTML =
     `<div class="form-label">Investimentos (${fmtEUR(invTotal)}):</div>` + (invRows || '<div class="row-detail">nenhum</div>') +
     `<div class="form-label" style="margin-top:10px">Contas à ordem (${fmtEUR(ordemTotal)}):</div>` + (ordemRows || '<div class="row-detail">nenhuma</div>') +
