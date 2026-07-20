@@ -137,7 +137,9 @@ function saveCard(){
       card.used = round2((card.used||0) + x);
       card.history = card.history || [];
       card.history.push({ date: todayKey(), desc: 'Ajuste de saldo disponível (' + (x>0?'compra avulsa':'pagamento avulso') + ' do ciclo)', amount: x });
-      adjMsg = ' — ' + (x>0?'compra avulsa':'pagamento avulso') + ' de ' + fmtEUR(Math.abs(x)) + ' registado';
+      adjMsg = ' — ' + (x>0?'compra avulsa':'pagamento avulso') + ' de ' + fmtEUR(Math.abs(x)) + ' registado (a fatura aparece nas Fixas no próximo mês)';
+    } else {
+      adjMsg = ' — o disponível já batia certo, nada a registar';
     }
   }
   closeModal('card-modal'); save(); showToast('✅ Cartão guardado' + adjMsg, 4000);

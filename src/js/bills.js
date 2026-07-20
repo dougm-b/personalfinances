@@ -43,6 +43,25 @@ function fixasItemsForMonth(M){
       items.push({ key:'fin:'+c.id+':'+f.id, name:f.desc+' ('+c.name+')', day: c.dueDay||1, amount:f.installment,
         kind:'expense', category:'Cartão de Crédito', fin:f, card:c });
   }));
+  // compras avulsas do cartão: a fatura do ciclo aparece no mês seguinte ao
+  // último movimento avulso, no dia de débito, até ser liquidada
+  state.creditCards.forEach(c => {
+    const s = settlementOf('cardbill:'+c.id, M);
+    if (s) {
+      // já liquidada neste mês: mantém-se visível (riscada) e desmarcável
+      const t = state.transactions.find(x => x.id === s.txId);
+      items.push({ key:'cardbill:'+c.id, name:'Fatura '+c.name+' — compras avulsas', day: c.dueDay||1,
+        amount: t ? Math.abs(t.amount) : round2(c.used), kind:'expense', category:'Cartão de Crédito', accountId:null, cardBill:c });
+      return;
+    }
+    if ((c.used||0) > 0.005) {
+      const hist = c.history || [];
+      const baseM = hist.length ? monthKey(hist[hist.length-1].date) : todayKey().slice(0,7);
+      if (M > baseM)
+        items.push({ key:'cardbill:'+c.id, name:'Fatura '+c.name+' — compras avulsas', day: c.dueDay||1,
+          amount: round2(c.used), kind:'expense', category:'Cartão de Crédito', accountId:null, cardBill:c });
+    }
+  });
   // débitos mensais do empréstimo da casa aparecem como despesa fixa no período
   ((state.house.loan||{}).paymentPlans||[]).forEach(p => {
     if (p.from <= M && M <= p.to)
@@ -58,7 +77,7 @@ function billItemRow(it, M, isFuture){
   // só o VALOR fica riscado (em cinza); nome e detalhes mantêm as cores normais
   const style = settled ? 'text-decoration:line-through;color:var(--txt3)' : '';
   const check = `<input type="checkbox" ${settled?'checked':''} onclick="event.stopPropagation();toggleFixedItem('${it.key}','${M}')" title="${settled?'Desmarcar (volta a não pago)':'Marcar como liquidado (não mexe no saldo da conta)'}" style="width:18px;height:18px;accent-color:var(--txt3)"/>`;
-  const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
+  const open = it.bill ? `openBillModal(${it.bill.id})` : it.plan ? `openPlanModal(${it.plan.id})` : it.cardBill ? `openCardDetail(${it.cardBill.id})` : `openFinancedModal(${it.card.id},${it.fin.id})`;
   return `<div class="row" onclick="${open}">
     <div class="row-emoji">${CATEGORY_EMOJI[it.category]||'📄'}</div>
     <div class="row-info"><div class="row-name">${esc(it.name)}</div>
@@ -102,6 +121,10 @@ function toggleFixedItem(key, M){
   const t = state.transactions.find(x => x.id === s.txId);
   if (t) {
     if (t.kind !== 'transfer' && t.applied) applyTxBalance(t, -1);
+    if (key.startsWith('cardbill:')) {
+      const c = state.creditCards.find(x => x.id === parseInt(key.split(':')[1]));
+      if (c) c.used = round2((c.used||0) + Math.abs(t.amount)); // fatura volta a estar por pagar
+    }
     state.transactions = state.transactions.filter(x => x.id !== t.id);
   }
   delete state.billSettlements[key + '|' + M];
@@ -132,6 +155,12 @@ function settleFixedItem(key, M){
     accountId: it.accountId||null, applied:false, ts: Date.now() };
   state.transactions.push(t);
   state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
+  if (it.cardBill) {
+    // fatura de avulsos paga: o utilizado do cartão volta a zero
+    it.cardBill.history = it.cardBill.history || [];
+    it.cardBill.history.push({ date: todayKey(), desc: 'Fatura de compras avulsas paga', amount: -it.amount });
+    it.cardBill.used = round2(Math.max(0, (it.cardBill.used||0) - it.amount));
+  }
   save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
 }
 
