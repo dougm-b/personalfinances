@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 186.47
+      "balance": 203.65
     },
     {
       "id": 2,
@@ -56,16 +56,6 @@
       "desc": "Seguro Ocidental — Casa",
       "kind": "expense",
       "amount": -18.35,
-      "date": "2026-07-19",
-      "category": "Seguros",
-      "accountId": 1,
-      "applied": true
-    },
-    {
-      "id": 6,
-      "desc": "Seguro Ocidental — Saúde",
-      "kind": "expense",
-      "amount": -17.18,
       "date": "2026-07-19",
       "category": "Seguros",
       "accountId": 1,
@@ -480,10 +470,6 @@
     },
     "bill:4|2026-07": {
       "txId": 5,
-      "when": 1784560565623
-    },
-    "bill:5|2026-07": {
-      "txId": 6,
       "when": 1784560565623
     },
     "bill:6|2026-07": {
