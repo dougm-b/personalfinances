@@ -283,9 +283,20 @@
       "accountId": 1,
       "from": "2026-08",
       "to": "2026-10"
+    },
+    {
+      "id": 14,
+      "name": "Despesas Gerais do Mês",
+      "day": 1,
+      "category": "Utilidades",
+      "amount": 200,
+      "kind": "expense",
+      "accountId": 1,
+      "from": "2026-08",
+      "to": "2026-12"
     }
   ],
-  "nextBillId": 14,
+  "nextBillId": 15,
   "creditCards": [
     {
       "id": 1,
