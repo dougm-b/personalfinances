@@ -108,8 +108,9 @@ sempre.
 - **Atualização manual de conta**: `saveAccount` grava `updatedAt`;
   transações com `ts` anterior a esse instante ficam supersedidas
   (`txSuperseded`) e deixam de poder alterar o saldo dessa conta.
-- **Simulação do dashboard**: assume receitas/despesas do mês atual mantidas
-  + movimentos previstos (`plannedTx`) até à data alvo. O modal "Balanço do
+- **Simulação do dashboard**: usa os movimentos fixos configurados
+  (`fixasItemsForMonth` por cada mês futuro, respeitando prazos) + fixas por
+  liquidar do mês atual + movimentos previstos (`plannedTx`) até à data alvo. O modal "Balanço do
   Mês" (clicar em Receitas/Despesas) mostra a composição detalhada e a sobra
   prevista na conta à ordem.
 

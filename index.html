@@ -1204,16 +1204,30 @@ function updateDash(){
   monthInput.min = curMonth;
   if (dashOffset > 0) {
     const targetM = addMonthsKey(curMonth, dashOffset);
-    // receitas/despesas do mês atual mantidas + movimentos previstos até lá
+    const today = todayKey();
+    // resto do mês atual: fixas ainda por liquidar
+    let fixasNet = fixasItemsForMonth(curMonth)
+      .filter(it => it.amount != null && !settlementOf(it.key, curMonth)
+        && (curMonth + '-' + String(it.day).padStart(2,'0')) >= today)
+      .reduce((s,it) => s + (it.kind==='income' ? it.amount : -it.amount), 0);
+    // meses seguintes: todos os movimentos fixos configurados (rendas,
+    // prestações, débito do empréstimo, salário...) dentro dos seus prazos
+    let m = curMonth;
+    while (m < targetM) {
+      m = nextMonth(m);
+      fixasNet += fixasItemsForMonth(m)
+        .filter(it => it.amount != null)
+        .reduce((s,it) => s + (it.kind==='income' ? it.amount : -it.amount), 0);
+    }
     const plannedSum = state.plannedTx
-      .filter(p => p.dueDate > todayKey() && p.dueDate <= targetM + '-31')
+      .filter(p => p.dueDate > today && p.dueDate <= targetM + '-31')
       .reduce((s,p) => s + p.amount, 0);
-    net += dashOffset * (mIncome + mExpense) + plannedSum;
+    net += round2(fixasNet + plannedSum);
     document.getElementById('d-net-lbl').textContent = 'Património previsto';
     document.getElementById('d-sim-label-txt').textContent = fmtMonth(targetM) + ' ▾';
     monthInput.value = targetM;
     noteEl.style.display = '';
-    noteEl.textContent = `Simulação: assume que as receitas (${fmtEUR(mIncome)}/mês) e despesas (${fmtEUR(Math.abs(mExpense))}/mês) do mês atual se mantêm, mais os movimentos previstos até ${fmtMonth(targetM)}. Toca na data para escolher outro mês/ano.`;
+    noteEl.textContent = `Simulação baseada nos movimentos fixos configurados (rendas, prestações, empréstimo, salário...) dentro dos seus prazos, mais os movimentos previstos, até ${fmtMonth(targetM)}. Toca na data para escolher outro mês/ano.`;
   } else {
     document.getElementById('d-net-lbl').textContent = 'Património líquido';
     document.getElementById('d-sim-label-txt').textContent = 'Hoje ▾';
