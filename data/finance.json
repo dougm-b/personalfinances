@@ -165,9 +165,20 @@
       "accountId": null,
       "applied": false,
       "ts": 1784560581088
+    },
+    {
+      "id": 16,
+      "desc": "MyHome",
+      "kind": "income",
+      "amount": 798.99,
+      "date": "2026-07-15",
+      "category": "Casa",
+      "accountId": 1,
+      "applied": false,
+      "ts": 1784560585740
     }
   ],
-  "nextTxId": 16,
+  "nextTxId": 17,
   "recurringBills": [
     {
       "id": 1,
@@ -499,6 +510,10 @@
     "fin:2:3|2026-07": {
       "txId": 15,
       "when": 1784560581088
+    },
+    "bill:9|2026-07": {
+      "txId": 16,
+      "when": 1784560585740
     }
   },
   "settings": {
