@@ -218,8 +218,11 @@
       "name": "Seguro Ocidental — Saúde",
       "category": "Seguros",
       "amount": 17.18,
-      "day": 5,
-      "kind": "expense"
+      "day": 20,
+      "kind": "expense",
+      "accountId": 1,
+      "from": null,
+      "to": null
     },
     {
       "id": 6,
