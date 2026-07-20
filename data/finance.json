@@ -229,7 +229,17 @@
       "limit": 4000,
       "used": 0,
       "monthlyDue": 0,
-      "financedItems": []
+      "financedItems": [
+        {
+          "id": 2,
+          "desc": "Revolut 1000",
+          "total": 1004.23,
+          "remaining": 0,
+          "installment": 333.35,
+          "startMonth": "2026-07",
+          "months": 3
+        }
+      ]
     },
     {
       "id": 3,
@@ -241,7 +251,7 @@
     }
   ],
   "nextCardId": 4,
-  "nextFinancedId": 2,
+  "nextFinancedId": 3,
   "plannedTx": [],
   "nextPlannedId": 1,
   "investments": [
