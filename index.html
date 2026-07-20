@@ -444,9 +444,8 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="account-detail-modal">
   <div class="modal">
-    <h3><span id="acc-detail-title">Conta</span><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></h3>
+    <h3><span id="acc-detail-title">Conta</span><span style="display:flex;gap:8px"><button class="modal-close" id="acc-detail-edit" title="Editar conta">✎</button><button class="modal-close" onclick="closeModal('account-detail-modal')">✕</button></span></h3>
     <div id="acc-detail-body"></div>
-    <button class="btn-secondary" id="acc-detail-edit">✎ Editar conta</button>
   </div>
 </div>
 
@@ -549,10 +548,8 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
     <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
-      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
-    </div>
+    <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
+    <div class="note-box" style="margin-bottom:12px">O valor em falta é calculado automaticamente: total − prestações já debitadas (desde o 1º mês, no dia de débito do cartão).</div>
     <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">1º mês da prestação</label><input class="form-input" id="fin-start" type="month"/></div>
@@ -566,12 +563,11 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="card-detail-modal">
   <div class="modal">
-    <h3><span id="cd-title">Cartão</span><button class="modal-close" onclick="closeModal('card-detail-modal')">✕</button></h3>
+    <h3><span id="cd-title">Cartão</span><span style="display:flex;gap:8px"><button class="modal-close" id="cd-edit" title="Editar cartão">✎</button><button class="modal-close" onclick="closeModal('card-detail-modal')">✕</button></span></h3>
     <div id="cd-body"></div>
     <button class="btn-primary" id="cd-add-fin">+ Compra a prestações</button>
     <button class="btn-secondary" id="cd-add-buy">+ Compra avulsa (aumenta o utilizado)</button>
     <button class="btn-secondary" id="cd-add-pay">− Pagamento avulso (reduz o utilizado)</button>
-    <button class="btn-secondary" id="cd-edit">✎ Editar cartão (nome, limite, utilizado)</button>
   </div>
 </div>
 
@@ -699,7 +695,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="loan-history-modal">
   <div class="modal">
-    <h3>Empréstimo — Detalhe <button class="modal-close" onclick="closeModal('loan-history-modal')">✕</button></h3>
+    <h3>Empréstimo — Detalhe <span style="display:flex;gap:8px"><button class="modal-close" title="Corrigir saldo em dívida" onclick="closeModal('loan-history-modal');openHouseRemainingModal()">✎</button><button class="modal-close" onclick="closeModal('loan-history-modal')">✕</button></span></h3>
     <div id="loan-history-body"></div>
   </div>
 </div>
@@ -1634,7 +1630,6 @@ function settleFixedItem(key, M){
     accountId: it.accountId||null, applied:false, ts: Date.now() };
   state.transactions.push(t);
   state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
-  if (it.fin) it.fin.remaining = Math.max(0, round2((it.fin.remaining||0) - it.amount));
   save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
 }
 
@@ -1784,6 +1779,20 @@ function deletePlanned(){
   closeModal('planned-modal'); save(); showToast('🗑️ Eliminado');
 }
 
+// "em falta" calculado: total − prestações já debitadas (não é editado à mão)
+function finRemaining(c, f){
+  if (!f.installment || !f.startMonth) return f.remaining || 0;
+  const cur = todayKey().slice(0,7);
+  let n = 0;
+  if (cur >= f.startMonth) {
+    const [sy,sm] = f.startMonth.split('-').map(Number);
+    const [cy,cm] = cur.split('-').map(Number);
+    n = (cy-sy)*12 + (cm-sm); // meses completos decorridos
+    if (parseInt(todayKey().slice(8,10), 10) >= (c.dueDay || 1)) n += 1; // a do mês atual já debitou?
+    if (f.months != null) n = Math.min(n, f.months);
+  }
+  return Math.max(0, round2((f.total||0) - n * f.installment));
+}
 // ══════════════════════════════════════════
 // CARTÃO DE CRÉDITO
 // ══════════════════════════════════════════
@@ -1821,7 +1830,7 @@ function openCardDetail(id){
       <div class="row-emoji">📱</div>
       <div class="row-info"><div class="row-name">${esc(f.desc)}</div>
         <div class="row-detail">${f.installment ? fmtEUR(f.installment)+'/mês' : 'sem prestação'}${end ? ' até ' + fmtMonth(end) : ''}</div></div>
-      <div class="row-val">${fmtEUR(f.remaining)} em falta</div>
+      <div class="row-val">${fmtEUR(finRemaining(c, f))} em falta</div>
     </div>`;
   }).join('');
   const hist = (c.history||[]).slice(-5).reverse().map(h =>
@@ -1906,14 +1915,12 @@ function openFinancedModal(cardId, finId){
     const f = (c.financedItems||[]).find(x=>x.id===finId);
     document.getElementById('fin-desc').value = f.desc;
     document.getElementById('fin-total').value = f.total;
-    document.getElementById('fin-remaining').value = f.remaining;
     document.getElementById('fin-installment').value = f.installment != null ? f.installment : '';
     document.getElementById('fin-start').value = f.startMonth || todayKey().slice(0,7);
     document.getElementById('fin-months').value = f.months != null ? f.months : '';
   } else {
     document.getElementById('fin-desc').value = '';
     document.getElementById('fin-total').value = '';
-    document.getElementById('fin-remaining').value = '';
     document.getElementById('fin-installment').value = '';
     document.getElementById('fin-start').value = todayKey().slice(0,7);
     document.getElementById('fin-months').value = '';
@@ -1930,9 +1937,7 @@ function saveFinancedItem(){
   const instVal = document.getElementById('fin-installment').value;
   const monthsVal = document.getElementById('fin-months').value;
   const totalVal = parseFloat(document.getElementById('fin-total').value)||0;
-  const remVal = document.getElementById('fin-remaining').value;
   const data = { desc, total: totalVal,
-    remaining: remVal==='' ? totalVal : parseFloat(remVal)||0,
     installment: instVal==='' ? null : parseFloat(instVal)||0,
     startMonth: document.getElementById('fin-start').value || todayKey().slice(0,7),
     months: monthsVal==='' ? null : parseInt(monthsVal) };
@@ -2294,7 +2299,6 @@ function openLoanHistory(){
       <div class="stat-box"><div class="l">Débito mensal atual</div><div class="v">${monthlyNow ? fmtEUR(monthlyNow) : '—'}</div></div>
     </div>
     <div class="note-box" style="margin-bottom:12px">${estimate}</div>
-    <button class="btn-secondary" onclick="closeModal('loan-history-modal');openHouseRemainingModal()">✎ Corrigir saldo em dívida manualmente</button>
     <div class="form-label" style="margin-top:12px">Transferências recebidas (toca em 🗑 para apagar):</div>
     <div class="timeline">${loan.transfers.map((t,i) => `
       <div class="tl-item"><div class="tl-dot"${t.amount<0?' style="background:var(--warn)"':''}></div>

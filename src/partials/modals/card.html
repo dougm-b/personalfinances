@@ -22,10 +22,8 @@
     <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
     <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
-      <div class="form-group"><label class="form-label">Em falta (€)</label><input class="form-input" id="fin-remaining" type="number" step="0.01"/></div>
-    </div>
+    <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
+    <div class="note-box" style="margin-bottom:12px">O valor em falta é calculado automaticamente: total − prestações já debitadas (desde o 1º mês, no dia de débito do cartão).</div>
     <div class="form-group"><label class="form-label">Prestação mensal (€)</label><input class="form-input" id="fin-installment" type="number" step="0.01" placeholder="Deixa vazio se não tiver prestação fixa"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">1º mês da prestação</label><input class="form-input" id="fin-start" type="month"/></div>
@@ -39,12 +37,11 @@
 
 <div class="modal-overlay" id="card-detail-modal">
   <div class="modal">
-    <h3><span id="cd-title">Cartão</span><button class="modal-close" onclick="closeModal('card-detail-modal')">✕</button></h3>
+    <h3><span id="cd-title">Cartão</span><span style="display:flex;gap:8px"><button class="modal-close" id="cd-edit" title="Editar cartão">✎</button><button class="modal-close" onclick="closeModal('card-detail-modal')">✕</button></span></h3>
     <div id="cd-body"></div>
     <button class="btn-primary" id="cd-add-fin">+ Compra a prestações</button>
     <button class="btn-secondary" id="cd-add-buy">+ Compra avulsa (aumenta o utilizado)</button>
     <button class="btn-secondary" id="cd-add-pay">− Pagamento avulso (reduz o utilizado)</button>
-    <button class="btn-secondary" id="cd-edit">✎ Editar cartão (nome, limite, utilizado)</button>
   </div>
 </div>
 

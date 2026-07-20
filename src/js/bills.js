@@ -84,7 +84,6 @@ function settleFixedItem(key, M){
     accountId: it.accountId||null, applied:false, ts: Date.now() };
   state.transactions.push(t);
   state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
-  if (it.fin) it.fin.remaining = Math.max(0, round2((it.fin.remaining||0) - it.amount));
   save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
 }
 

@@ -225,7 +225,6 @@ function openLoanHistory(){
       <div class="stat-box"><div class="l">Débito mensal atual</div><div class="v">${monthlyNow ? fmtEUR(monthlyNow) : '—'}</div></div>
     </div>
     <div class="note-box" style="margin-bottom:12px">${estimate}</div>
-    <button class="btn-secondary" onclick="closeModal('loan-history-modal');openHouseRemainingModal()">✎ Corrigir saldo em dívida manualmente</button>
     <div class="form-label" style="margin-top:12px">Transferências recebidas (toca em 🗑 para apagar):</div>
     <div class="timeline">${loan.transfers.map((t,i) => `
       <div class="tl-item"><div class="tl-dot"${t.amount<0?' style="background:var(--warn)"':''}></div>

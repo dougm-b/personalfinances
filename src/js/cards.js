@@ -1,3 +1,17 @@
+// "em falta" calculado: total − prestações já debitadas (não é editado à mão)
+function finRemaining(c, f){
+  if (!f.installment || !f.startMonth) return f.remaining || 0;
+  const cur = todayKey().slice(0,7);
+  let n = 0;
+  if (cur >= f.startMonth) {
+    const [sy,sm] = f.startMonth.split('-').map(Number);
+    const [cy,cm] = cur.split('-').map(Number);
+    n = (cy-sy)*12 + (cm-sm); // meses completos decorridos
+    if (parseInt(todayKey().slice(8,10), 10) >= (c.dueDay || 1)) n += 1; // a do mês atual já debitou?
+    if (f.months != null) n = Math.min(n, f.months);
+  }
+  return Math.max(0, round2((f.total||0) - n * f.installment));
+}
 // ══════════════════════════════════════════
 // CARTÃO DE CRÉDITO
 // ══════════════════════════════════════════
@@ -35,7 +49,7 @@ function openCardDetail(id){
       <div class="row-emoji">📱</div>
       <div class="row-info"><div class="row-name">${esc(f.desc)}</div>
         <div class="row-detail">${f.installment ? fmtEUR(f.installment)+'/mês' : 'sem prestação'}${end ? ' até ' + fmtMonth(end) : ''}</div></div>
-      <div class="row-val">${fmtEUR(f.remaining)} em falta</div>
+      <div class="row-val">${fmtEUR(finRemaining(c, f))} em falta</div>
     </div>`;
   }).join('');
   const hist = (c.history||[]).slice(-5).reverse().map(h =>
@@ -120,14 +134,12 @@ function openFinancedModal(cardId, finId){
     const f = (c.financedItems||[]).find(x=>x.id===finId);
     document.getElementById('fin-desc').value = f.desc;
     document.getElementById('fin-total').value = f.total;
-    document.getElementById('fin-remaining').value = f.remaining;
     document.getElementById('fin-installment').value = f.installment != null ? f.installment : '';
     document.getElementById('fin-start').value = f.startMonth || todayKey().slice(0,7);
     document.getElementById('fin-months').value = f.months != null ? f.months : '';
   } else {
     document.getElementById('fin-desc').value = '';
     document.getElementById('fin-total').value = '';
-    document.getElementById('fin-remaining').value = '';
     document.getElementById('fin-installment').value = '';
     document.getElementById('fin-start').value = todayKey().slice(0,7);
     document.getElementById('fin-months').value = '';
@@ -144,9 +156,7 @@ function saveFinancedItem(){
   const instVal = document.getElementById('fin-installment').value;
   const monthsVal = document.getElementById('fin-months').value;
   const totalVal = parseFloat(document.getElementById('fin-total').value)||0;
-  const remVal = document.getElementById('fin-remaining').value;
   const data = { desc, total: totalVal,
-    remaining: remVal==='' ? totalVal : parseFloat(remVal)||0,
     installment: instVal==='' ? null : parseFloat(instVal)||0,
     startMonth: document.getElementById('fin-start').value || todayKey().slice(0,7),
     months: monthsVal==='' ? null : parseInt(monthsVal) };
