@@ -132,9 +132,20 @@
       "accountId": 1,
       "applied": false,
       "ts": 1784560569687
+    },
+    {
+      "id": 13,
+      "desc": "Renda dos Quartos",
+      "kind": "income",
+      "amount": 900,
+      "date": "2026-07-05",
+      "category": "Renda Recebida",
+      "accountId": null,
+      "applied": false,
+      "ts": 1784560572948
     }
   ],
-  "nextTxId": 13,
+  "nextTxId": 14,
   "recurringBills": [
     {
       "id": 1,
@@ -454,6 +465,10 @@
     "plan:2|2026-07": {
       "txId": 12,
       "when": 1784560569687
+    },
+    "bill:11|2026-07": {
+      "txId": 13,
+      "when": 1784560572948
     }
   },
   "settings": {
