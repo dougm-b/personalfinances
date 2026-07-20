@@ -439,9 +439,17 @@
           "to": "2026-12",
           "accountId": 1,
           "chargedUntil": "2026-07"
+        },
+        {
+          "id": 4,
+          "amount": 600,
+          "from": "2027-01",
+          "to": "2029-09",
+          "accountId": 1,
+          "chargedUntil": "2026-07"
         }
       ],
-      "nextPlanId": 4,
+      "nextPlanId": 5,
       "transfers": [
         {
           "date": "2024-11-12",
