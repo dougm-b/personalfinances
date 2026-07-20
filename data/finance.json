@@ -187,9 +187,11 @@
       "name": "MyHome",
       "category": "Casa",
       "amount": 798.99,
-      "day": 20,
+      "day": 15,
       "kind": "income",
-      "accountId": 1
+      "accountId": 1,
+      "from": null,
+      "to": null
     },
     {
       "id": 10,
