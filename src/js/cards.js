@@ -104,12 +104,14 @@ function openCardModal(id){
     document.getElementById('card-used').value = c.used;
     document.getElementById('card-monthly').value = c.monthlyDue || '';
     document.getElementById('card-dueday').value = c.dueDay || '';
+    document.getElementById('card-adjavail').value = '';
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
     document.getElementById('card-used').value = '';
     document.getElementById('card-monthly').value = '';
     document.getElementById('card-dueday').value = '';
+    document.getElementById('card-adjavail').value = '';
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -121,9 +123,24 @@ function saveCard(){
     used: parseFloat(document.getElementById('card-used').value)||0,
     monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
     dueDay: parseInt(document.getElementById('card-dueday').value)||null };
-  if (id) { Object.assign(state.creditCards.find(c=>c.id==id), data); }
-  else { state.creditCards.push({ id: state.nextCardId++, financedItems:[], ...data }); }
-  closeModal('card-modal'); save(); showToast('✅ Cartão guardado');
+  let card;
+  if (id) { card = state.creditCards.find(c=>c.id==id); Object.assign(card, data); }
+  else { card = { id: state.nextCardId++, financedItems:[], ...data }; state.creditCards.push(card); }
+  // Ajuste de Saldo Disponível: deduz a compra/pagamento avulso deste ciclo
+  // a partir do disponível real (limite − disponível − prestações − avulsas anteriores)
+  const adjVal = document.getElementById('card-adjavail').value;
+  let adjMsg = '';
+  if (adjVal !== '') {
+    if (!card.limit) { showToast('Define o limite do cartão para usar o ajuste de disponível'); return; }
+    const x = round2((card.limit - parseFloat(adjVal)) - cardUsed(card));
+    if (Math.abs(x) >= 0.01) {
+      card.used = round2((card.used||0) + x);
+      card.history = card.history || [];
+      card.history.push({ date: todayKey(), desc: 'Ajuste de saldo disponível (' + (x>0?'compra avulsa':'pagamento avulso') + ' do ciclo)', amount: x });
+      adjMsg = ' — ' + (x>0?'compra avulsa':'pagamento avulso') + ' de ' + fmtEUR(Math.abs(x)) + ' registado';
+    }
+  }
+  closeModal('card-modal'); save(); showToast('✅ Cartão guardado' + adjMsg, 4000);
 }
 function deleteCard(){
   const id = parseInt(document.getElementById('card-id').value);

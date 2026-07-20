@@ -537,6 +537,8 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">A pagar este mês (€)</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
       <div class="form-group"><label class="form-label">Dia do débito no mês</label><input class="form-input" id="card-dueday" type="number" min="1" max="31" placeholder="Ex: 11"/></div>
     </div>
+    <div class="form-group"><label class="form-label">Ajuste de Saldo Disponível (€) — opcional</label><input class="form-input" id="card-adjavail" type="number" step="0.01" placeholder="Insere o disponível real que o banco mostra"/></div>
+    <div class="note-box" style="margin-bottom:12px">Ao preencher, o sistema calcula a diferença face ao disponível esperado (limite − prestações em falta − avulsas anteriores) e regista automaticamente uma compra avulsa ou um pagamento avulso deste ciclo, que fica agregado para o futuro.</div>
     <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
   </div>
@@ -1900,12 +1902,14 @@ function openCardModal(id){
     document.getElementById('card-used').value = c.used;
     document.getElementById('card-monthly').value = c.monthlyDue || '';
     document.getElementById('card-dueday').value = c.dueDay || '';
+    document.getElementById('card-adjavail').value = '';
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
     document.getElementById('card-used').value = '';
     document.getElementById('card-monthly').value = '';
     document.getElementById('card-dueday').value = '';
+    document.getElementById('card-adjavail').value = '';
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -1917,9 +1921,24 @@ function saveCard(){
     used: parseFloat(document.getElementById('card-used').value)||0,
     monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
     dueDay: parseInt(document.getElementById('card-dueday').value)||null };
-  if (id) { Object.assign(state.creditCards.find(c=>c.id==id), data); }
-  else { state.creditCards.push({ id: state.nextCardId++, financedItems:[], ...data }); }
-  closeModal('card-modal'); save(); showToast('✅ Cartão guardado');
+  let card;
+  if (id) { card = state.creditCards.find(c=>c.id==id); Object.assign(card, data); }
+  else { card = { id: state.nextCardId++, financedItems:[], ...data }; state.creditCards.push(card); }
+  // Ajuste de Saldo Disponível: deduz a compra/pagamento avulso deste ciclo
+  // a partir do disponível real (limite − disponível − prestações − avulsas anteriores)
+  const adjVal = document.getElementById('card-adjavail').value;
+  let adjMsg = '';
+  if (adjVal !== '') {
+    if (!card.limit) { showToast('Define o limite do cartão para usar o ajuste de disponível'); return; }
+    const x = round2((card.limit - parseFloat(adjVal)) - cardUsed(card));
+    if (Math.abs(x) >= 0.01) {
+      card.used = round2((card.used||0) + x);
+      card.history = card.history || [];
+      card.history.push({ date: todayKey(), desc: 'Ajuste de saldo disponível (' + (x>0?'compra avulsa':'pagamento avulso') + ' do ciclo)', amount: x });
+      adjMsg = ' — ' + (x>0?'compra avulsa':'pagamento avulso') + ' de ' + fmtEUR(Math.abs(x)) + ' registado';
+    }
+  }
+  closeModal('card-modal'); save(); showToast('✅ Cartão guardado' + adjMsg, 4000);
 }
 function deleteCard(){
   const id = parseInt(document.getElementById('card-id').value);

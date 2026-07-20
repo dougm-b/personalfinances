@@ -11,6 +11,8 @@
       <div class="form-group"><label class="form-label">A pagar este mês (€)</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
       <div class="form-group"><label class="form-label">Dia do débito no mês</label><input class="form-input" id="card-dueday" type="number" min="1" max="31" placeholder="Ex: 11"/></div>
     </div>
+    <div class="form-group"><label class="form-label">Ajuste de Saldo Disponível (€) — opcional</label><input class="form-input" id="card-adjavail" type="number" step="0.01" placeholder="Insere o disponível real que o banco mostra"/></div>
+    <div class="note-box" style="margin-bottom:12px">Ao preencher, o sistema calcula a diferença face ao disponível esperado (limite − prestações em falta − avulsas anteriores) e regista automaticamente uma compra avulsa ou um pagamento avulso deste ciclo, que fica agregado para o futuro.</div>
     <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
   </div>
