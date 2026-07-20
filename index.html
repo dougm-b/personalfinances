@@ -1919,8 +1919,17 @@ function renderCards(){
 function openCardDetail(id){
   const c = state.creditCards.find(x=>x.id===id);
   document.getElementById('cd-title').textContent = c.name;
-  const installmentsSum = (c.financedItems||[]).reduce((a,f)=>a+(f.installment||0),0);
-  const monthDue = (c.monthlyDue||0) + installmentsSum;
+  // próxima data de débito do cartão
+  const dDay = c.dueDay || 1;
+  let nextM = todayKey().slice(0,7);
+  if (parseInt(todayKey().slice(8,10),10) >= dDay) nextM = nextMonth(nextM);
+  // prestações ativas nesse ciclo
+  const instNext = (c.financedItems||[]).filter(f => {
+    if (!f.installment) return false;
+    const st = f.startMonth || '0000-01';
+    return st <= nextM && nextM <= (f.months ? addMonthsKey(st, f.months-1) : '9999-12');
+  }).reduce((s,f) => s + f.installment, 0);
+  const totalNext = round2(instNext + (c.used||0) + (c.monthlyDue||0));
   const dueInfo = c.dueDay ? `<div class="row-detail" style="margin-bottom:6px">Débito na conta: dia ${c.dueDay} de cada mês</div>` : '';
   const used = cardUsed(c);
   let usage;
@@ -1945,8 +1954,11 @@ function openCardDetail(id){
   const hist = (c.history||[]).slice(-5).reverse().map(h =>
     `<div class="row-detail">${h.date} · ${esc(h.desc)} · ${h.amount>0?'+':''}${fmtEUR(h.amount)}</div>`).join('');
   document.getElementById('cd-body').innerHTML = dueInfo + usage +
-    `<div class="stat-box" style="margin:10px 0"><div class="l">A pagar este mês</div><div class="v">${fmtEUR(monthDue)}</div>
-      <div class="row-detail">${fmtEUR(c.monthlyDue||0)} despesas do mês${installmentsSum?` + ${fmtEUR(installmentsSum)} prestações`:''}</div></div>` +
+    `<div class="stat-grid" style="margin:10px 0">
+      <div class="stat-box"><div class="l">Total no próximo débito · dia ${dDay}, ${fmtMonth(nextM)}</div><div class="v">${fmtEUR(totalNext)}</div>
+        <div class="row-detail">avulsos + prestações${c.monthlyDue?' + despesas do mês':''}</div></div>
+      <div class="stat-box"><div class="l">Só prestações · dia ${dDay}, ${fmtMonth(nextM)}</div><div class="v">${fmtEUR(round2(instNext))}</div></div>
+    </div>` +
     (items ? `<div class="form-label">Compras a prestações (aparecem na aba Fixas até ao último mês):</div>${items}` : '') +
     (hist ? `<div class="form-label" style="margin-top:8px">Últimos movimentos avulsos:</div>${hist}` : '');
   document.getElementById('cd-add-fin').onclick = () => { closeModal('card-detail-modal'); openFinancedModal(id); };
