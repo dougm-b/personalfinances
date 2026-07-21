@@ -2,6 +2,25 @@
 // TRANSAÇÕES
 // ══════════════════════════════════════════
 let txFilter = 'Todas';
+let txMonth = null;  // mês visível na aba Transações (YYYY-MM)
+let txSort = 'date'; // 'date' | 'valueDesc' | 'valueAsc'
+function txShiftMonth(d){
+  const cur = txMonth || todayKey().slice(0,7);
+  let [y,m] = cur.split('-').map(Number);
+  m += d; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; }
+  txMonth = y + '-' + String(m).padStart(2,'0');
+  renderTx();
+}
+function toggleTxSortMenu(e){
+  e.stopPropagation();
+  const m = document.getElementById('tx-sort-menu');
+  m.style.display = m.style.display === 'none' ? '' : 'none';
+}
+function setTxSort(mode){
+  txSort = mode;
+  document.getElementById('tx-sort-menu').style.display = 'none';
+  renderTx();
+}
 function populateCategorySelect(el, includeAll){
   el.innerHTML = (includeAll ? ['Todas'] : []).concat(CATEGORIES).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
 }
@@ -11,12 +30,23 @@ function renderTxFilters(){
 }
 function setTxFilter(c){ txFilter = c; renderTx(); renderTxFilters(); }
 function renderTx(){
+  const M = txMonth || todayKey().slice(0,7);
+  txMonth = M;
+  document.getElementById('tx-month-label').textContent = fmtMonth(M);
+  ['ts-date','ts-desc','ts-asc'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.color = (['date','valueDesc','valueAsc'][i] === txSort) ? 'var(--acc)' : '';
+  });
   const list = state.transactions
+    .filter(t => monthKey(t.date) === M)
     .filter(t => txFilter==='Todas' || t.category===txFilter)
-    .slice().sort((a,b)=>b.date.localeCompare(a.date));
+    .slice();
+  if (txSort === 'valueDesc') list.sort((a,b) => Math.abs(b.amount) - Math.abs(a.amount));
+  else if (txSort === 'valueAsc') list.sort((a,b) => Math.abs(a.amount) - Math.abs(b.amount));
+  else list.sort((a,b) => b.date.localeCompare(a.date));
   const el = document.getElementById('tx-list');
   el.innerHTML = list.length ? list.map(txRow).join('')
-    : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações nesta categoria</p></div>';
+    : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações neste mês' + (txFilter!=='Todas' ? ' nesta categoria' : '') + '</p></div>';
 }
 function onTxKindChange(){
   const isTr = document.getElementById('tx-kind').value === 'transfer';
