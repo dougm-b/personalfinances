@@ -56,13 +56,10 @@ function fixasItemsForMonth(M){
         amount: t ? Math.abs(t.amount) : round2(c.used), kind:'expense', category:'Cartão de Crédito', accountId:null, cardBill:c });
       return;
     }
-    if ((c.used||0) > 0.005) {
-      const hist = c.history || [];
-      const baseM = hist.length ? monthKey(hist[hist.length-1].date) : todayKey().slice(0,7);
-      if (M > baseM)
-        items.push({ key:'cardbill:'+c.id, name:'Fatura '+c.name+' — compras avulsas', day: c.dueDay||1,
-          amount: round2(c.used), kind:'expense', category:'Cartão de Crédito', accountId:null, cardBill:c });
-    }
+    const amt = cardBillFor(c, M);
+    if (amt > 0.005)
+      items.push({ key:'cardbill:'+c.id, name:'Fatura '+c.name+' — compras avulsas', day: c.dueDay||1,
+        amount: amt, kind:'expense', category:'Cartão de Crédito', accountId:null, cardBill:c });
   });
   // débitos mensais do empréstimo da casa aparecem como despesa fixa no período
   ((state.house.loan||{}).paymentPlans||[]).forEach(p => {
@@ -163,10 +160,11 @@ function settleFixedItem(key, M){
   state.transactions.push(t);
   state.billSettlements[key+'|'+M] = { txId: t.id, when: Date.now() };
   if (it.cardBill) {
-    // fatura de avulsos paga: o utilizado do cartão volta a zero
+    // fatura (ou parte dela) paga: abate no utilizado do cartão
     it.cardBill.history = it.cardBill.history || [];
-    it.cardBill.history.push({ date: todayKey(), desc: 'Fatura de compras avulsas paga', amount: -it.amount });
+    it.cardBill.history.push({ date: todayKey(), desc: 'Fatura de compras avulsas paga (' + fmtMonth(M) + ')', amount: -it.amount });
     it.cardBill.used = round2(Math.max(0, (it.cardBill.used||0) - it.amount));
+    if (it.cardBill.rollMonth === M) { it.cardBill.rollAmount = 0; it.cardBill.rollMonth = null; }
   }
   save(); showToast('✅ Liquidado — registado em Transações (saldo da conta não alterado)');
 }

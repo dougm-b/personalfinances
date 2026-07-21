@@ -1,3 +1,19 @@
+// mês de vencimento da fatura de avulsos: o mês seguinte à última COMPRA avulsa
+function cardBillMonth(c){
+  const buys = (c.history||[]).filter(h => h.amount > 0);
+  const baseM = buys.length ? monthKey(buys[buys.length-1].date) : todayKey().slice(0,7);
+  return nextMonth(baseM);
+}
+// valor da fatura de avulsos num dado mês, considerando a parte rolada
+function cardBillFor(c, M){
+  if ((c.used||0) <= 0.005) return 0;
+  const B = cardBillMonth(c);
+  const roll = (c.rollMonth && c.rollAmount) ? Math.min(c.rollAmount, c.used) : 0;
+  let amt = 0;
+  if (M === B) amt = round2(Math.max(0, c.used - (c.rollMonth && c.rollMonth !== B ? roll : 0)));
+  if (c.rollMonth === M && M !== B) amt = round2(amt + roll);
+  return amt;
+}
 // utilizado total = compras avulsas (c.used) + o que falta pagar das prestações
 function cardUsed(c){
   return round2((c.used||0) + (c.financedItems||[]).reduce((s,f) => s + finRemaining(c,f), 0));
@@ -51,7 +67,7 @@ function openCardDetail(id){
     const st = f.startMonth || '0000-01';
     return st <= nextM && nextM <= (f.months ? addMonthsKey(st, f.months-1) : '9999-12');
   }).reduce((s,f) => s + f.installment, 0);
-  const totalNext = round2(instNext + (c.used||0) + (c.monthlyDue||0));
+  const totalNext = round2(instNext + cardBillFor(c, nextM) + (c.monthlyDue||0));
   const dueInfo = c.dueDay ? `<div class="row-detail" style="margin-bottom:6px">Débito na conta: dia ${c.dueDay} de cada mês</div>` : '';
   const used = cardUsed(c);
   let usage;
@@ -86,6 +102,9 @@ function openCardDetail(id){
   document.getElementById('cd-add-fin').onclick = () => { closeModal('card-detail-modal'); openFinancedModal(id); };
   document.getElementById('cd-add-buy').onclick = () => openCardAdj(id, 1);
   document.getElementById('cd-add-pay').onclick = () => openCardAdj(id, -1);
+  const rollBtn = document.getElementById('cd-roll');
+  rollBtn.style.display = (c.used||0) > 0.005 ? '' : 'none';
+  rollBtn.onclick = () => openCardAdj(id, 0);
   document.getElementById('cd-edit').onclick = () => { closeModal('card-detail-modal'); openCardModal(id); };
   document.getElementById('card-detail-modal').classList.add('open');
 }
@@ -93,7 +112,8 @@ function openCardAdj(cardId, sign){
   closeModal('card-detail-modal');
   document.getElementById('ca-card-id').value = cardId;
   document.getElementById('ca-sign').value = sign;
-  document.getElementById('ca-title').textContent = sign > 0 ? 'Compra Avulsa' : 'Pagamento Avulso';
+  document.getElementById('ca-title').textContent = sign > 0 ? 'Compra Avulsa' : sign < 0 ? 'Pagamento Avulso' : 'Rolar Parte da Fatura';
+  document.getElementById('ca-desc').placeholder = sign === 0 ? 'opcional' : 'Ex: compra supermercado / pagamento da fatura';
   document.getElementById('ca-desc').value = '';
   document.getElementById('ca-amount').value = '';
   document.getElementById('card-adj-modal').classList.add('open');
@@ -103,6 +123,16 @@ function saveCardAdj(){
   const sign = parseInt(document.getElementById('ca-sign').value);
   const amt = parseFloat(document.getElementById('ca-amount').value);
   if (!amt || amt <= 0) { showToast('Indica o valor'); return; }
+  if (sign === 0) {
+    // rolar parte da fatura para o mês seguinte ao do vencimento
+    const B = cardBillMonth(c);
+    if (amt > (c.used||0)) { showToast('Só podes rolar até ' + fmtEUR(c.used)); return; }
+    c.rollAmount = round2(amt);
+    c.rollMonth = nextMonth(B);
+    closeModal('card-adj-modal'); save();
+    showToast('↪ ' + fmtEUR(amt) + ' rolado de ' + fmtMonth(B) + ' para ' + fmtMonth(c.rollMonth), 4500);
+    openCardDetail(c.id); return;
+  }
   const desc = document.getElementById('ca-desc').value.trim() || (sign > 0 ? 'Compra avulsa' : 'Pagamento avulso');
   c.used = Math.max(0, round2((c.used||0) + sign*amt));
   c.history = c.history || [];
