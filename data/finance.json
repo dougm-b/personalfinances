@@ -219,7 +219,7 @@
   "recurringBills": [
     {
       "id": 1,
-      "name": "Prestação / Renda da Casa",
+      "name": "Prestação  da Casa",
       "category": "Casa",
       "amount": 580.14,
       "day": 8,
