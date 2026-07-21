@@ -233,7 +233,7 @@
       "id": 2,
       "name": "Água (Agere)",
       "category": "Utilidades",
-      "amount": 4036,
+      "amount": 40.36,
       "day": 24,
       "kind": "expense",
       "accountId": 1,
