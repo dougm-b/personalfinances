@@ -23,8 +23,9 @@
     {
       "id": 6,
       "name": "Moey",
-      "type": "À ordem",
-      "balance": 98.01
+      "type": "Profissional",
+      "balance": 98.01,
+      "updatedAt": 1784642482565
     }
   ],
   "nextAccountId": 7,
