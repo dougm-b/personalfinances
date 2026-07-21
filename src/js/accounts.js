@@ -22,6 +22,34 @@ function accountEndOfMonth(a){
   });
   return { v: round2(v), items };
 }
+// saldo previsto no fim do mês somando todas as contas à ordem pessoais
+function ordemEndOfMonth(M){
+  const cur = todayKey().slice(0,7), today = todayKey();
+  const useM = M || cur;
+  const ordem = state.accounts.filter(a => a.type === 'À ordem');
+  let base = ordem.reduce((s,a) => s + (a.balance||0), 0);
+  const items = [];
+  fixasItemsForMonth(useM).forEach(it => {
+    if (it.amount == null || settlementOf(it.key, useM)) return;
+    const dk = useM + '-' + String(it.day).padStart(2,'0');
+    if (useM === cur && dk < today) return; // no mês atual, só o que falta acontecer
+    let delta = 0, label = it.name;
+    if (it.kind === 'transfer') {
+      // só conta o efeito líquido nas contas à ordem pessoais
+      const fromO = ordem.some(a => 'acc:'+a.id === it.fromRef);
+      const toO = ordem.some(a => 'acc:'+a.id === it.toRef);
+      if (fromO) delta -= it.amount;
+      if (toO) delta += it.amount;
+    } else if (ordem.some(a => a.id === it.accountId)) {
+      delta = it.kind === 'income' ? it.amount : -it.amount;
+    }
+    if (delta !== 0) items.push({ name: label, day: it.day, delta });
+  });
+  items.sort((x,y) => x.day - y.day);
+  let run = base;
+  items.forEach(p => { run = round2(run + p.delta); p.run = run; });
+  return { base: round2(base), v: round2(run), items };
+}
 let accFlipped = {};
 let lastAccSwipe = 0;
 function bindAccountSwipes(){

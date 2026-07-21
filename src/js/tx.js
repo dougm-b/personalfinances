@@ -52,6 +52,9 @@ function renderTx(){
   const netEl = document.getElementById('tx-close-net');
   netEl.textContent = (incM-expM >= 0 ? '+' : '') + fmtEUR(round2(incM - expM));
   netEl.style.color = incM - expM >= 0 ? 'var(--good)' : 'var(--red)';
+  const teom = ordemEndOfMonth(M);
+  const te = document.getElementById('tx-eom');
+  te.textContent = fmtEUR(teom.v); te.style.color = teom.v >= 0 ? 'var(--good)' : 'var(--red)';
   const el = document.getElementById('tx-list');
   el.innerHTML = list.length ? list.map(txRow).join('')
     : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações neste mês' + (txFilter!=='Todas' ? ' nesta categoria' : '') + '</p></div>';

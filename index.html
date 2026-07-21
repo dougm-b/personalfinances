@@ -343,6 +343,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div id="tx-list"></div>
 
       <div class="card" style="margin-top:16px">
+        <div class="card-title">Saldo à Ordem no Fim do Mês</div>
+        <div class="stat-box" style="cursor:pointer" onclick="openEomSim('tx')">
+          <div class="l">Contas pessoais hoje − despesas/transferências a realizar até ao fim do mês → toca para o detalhe</div>
+          <div class="v" id="tx-eom">€0</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
         <div class="card-title">Fechamento do Mês</div>
         <div class="stat-grid">
           <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="tx-close-inc">€0</div></div>
@@ -382,6 +389,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button></div>
       <div id="bills-past"></div>
 
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Saldo à Ordem no Fim do Mês</div>
+        <div class="stat-box" style="cursor:pointer" onclick="openEomSim('bills')">
+          <div class="l">Contas pessoais hoje − despesas/transferências a realizar até ao fim do mês → toca para o detalhe</div>
+          <div class="v" id="bills-eom">€0</div>
+        </div>
+      </div>
       <div class="card" style="margin-top:16px">
         <div class="card-title">Fechamento do Mês</div>
         <div class="stat-grid">
@@ -782,6 +796,12 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
   <div class="modal">
     <h3>Sobra Mensal — Simulação <button class="modal-close" onclick="closeModal('leftover-modal')">✕</button></h3>
     <div id="leftover-body"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="eom-modal">
+  <div class="modal">
+    <h3>Saldo à Ordem no Fim do Mês <button class="modal-close" onclick="closeModal('eom-modal')">✕</button></h3>
+    <div id="eom-body"></div>
   </div>
 </div>
 <div class="modal-overlay" id="settings-modal">
@@ -1570,6 +1590,34 @@ function accountEndOfMonth(a){
   });
   return { v: round2(v), items };
 }
+// saldo previsto no fim do mês somando todas as contas à ordem pessoais
+function ordemEndOfMonth(M){
+  const cur = todayKey().slice(0,7), today = todayKey();
+  const useM = M || cur;
+  const ordem = state.accounts.filter(a => a.type === 'À ordem');
+  let base = ordem.reduce((s,a) => s + (a.balance||0), 0);
+  const items = [];
+  fixasItemsForMonth(useM).forEach(it => {
+    if (it.amount == null || settlementOf(it.key, useM)) return;
+    const dk = useM + '-' + String(it.day).padStart(2,'0');
+    if (useM === cur && dk < today) return; // no mês atual, só o que falta acontecer
+    let delta = 0, label = it.name;
+    if (it.kind === 'transfer') {
+      // só conta o efeito líquido nas contas à ordem pessoais
+      const fromO = ordem.some(a => 'acc:'+a.id === it.fromRef);
+      const toO = ordem.some(a => 'acc:'+a.id === it.toRef);
+      if (fromO) delta -= it.amount;
+      if (toO) delta += it.amount;
+    } else if (ordem.some(a => a.id === it.accountId)) {
+      delta = it.kind === 'income' ? it.amount : -it.amount;
+    }
+    if (delta !== 0) items.push({ name: label, day: it.day, delta });
+  });
+  items.sort((x,y) => x.day - y.day);
+  let run = base;
+  items.forEach(p => { run = round2(run + p.delta); p.run = run; });
+  return { base: round2(base), v: round2(run), items };
+}
 let accFlipped = {};
 let lastAccSwipe = 0;
 function bindAccountSwipes(){
@@ -1753,6 +1801,9 @@ function renderTx(){
   const netEl = document.getElementById('tx-close-net');
   netEl.textContent = (incM-expM >= 0 ? '+' : '') + fmtEUR(round2(incM - expM));
   netEl.style.color = incM - expM >= 0 ? 'var(--good)' : 'var(--red)';
+  const teom = ordemEndOfMonth(M);
+  const te = document.getElementById('tx-eom');
+  te.textContent = fmtEUR(teom.v); te.style.color = teom.v >= 0 ? 'var(--good)' : 'var(--red)';
   const el = document.getElementById('tx-list');
   el.innerHTML = list.length ? list.map(txRow).join('')
     : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações neste mês' + (txFilter!=='Todas' ? ' nesta categoria' : '') + '</p></div>';
@@ -1953,6 +2004,9 @@ function renderBills(){
   const netEl = document.getElementById('bills-close-net');
   netEl.textContent = (inc-exp >= 0 ? '+' : '') + fmtEUR(round2(inc - exp));
   netEl.style.color = inc - exp >= 0 ? 'var(--good)' : 'var(--red)';
+  const eom = ordemEndOfMonth(M);
+  const be = document.getElementById('bills-eom');
+  be.textContent = fmtEUR(eom.v); be.style.color = eom.v >= 0 ? 'var(--good)' : 'var(--red)';
   const today = todayKey();
   const past = [], future = [];
   items.forEach(it => {
@@ -2126,6 +2180,26 @@ function deleteBill(){
   });
   state.recurringBills = state.recurringBills.filter(b=>b.id!==id);
   closeModal('bill-modal'); save(); showToast('🗑️ Eliminada (e transações associadas)');
+}
+// saldo à ordem previsto no fim do mês: contas pessoais hoje − o que falta
+// sair/entrar até ao fim do mês (fixas por liquidar e transferências)
+function openEomSim(prefix){
+  const M = (prefix === 'bills') ? (billsMonth || todayKey().slice(0,7)) : (txMonth || todayKey().slice(0,7));
+  const eom = ordemEndOfMonth(M);
+  document.getElementById('eom-body').innerHTML =
+    `<div class="stat-grid" style="margin-bottom:12px">
+      <div class="stat-box"><div class="l">Contas à ordem hoje</div><div class="v">${fmtEUR(eom.base)}</div></div>
+      <div class="stat-box"><div class="l">Previsto no fim de ${fmtMonth(M)}</div><div class="v" style="color:${eom.v>=0?'var(--good)':'var(--red)'}">${fmtEUR(eom.v)}</div></div>
+    </div>` +
+    (eom.items.length
+      ? '<div class="form-label">A realizar até ao fim do mês:</div><div class="timeline">' + eom.items.map(p => `
+        <div class="tl-item"><div class="tl-dot" style="background:${p.delta>=0?'var(--good)':'var(--red)'}"></div>
+          <div class="tl-info"><div class="t">${esc(p.name)}</div><div class="s">dia ${p.day} · ${p.delta>=0?'+':'-'}${fmtEUR(Math.abs(p.delta))}</div></div>
+          <div class="tl-val" style="color:${p.run>=0?'var(--txt)':'var(--red)'}">${fmtEUR(p.run)}</div>
+        </div>`).join('') + '</div>'
+      : '<div class="row-detail">Sem movimentos por liquidar até ao fim do mês.</div>') +
+    '<div class="note-box" style="margin-top:10px">Soma das contas à ordem pessoais hoje, menos as despesas/transferências fixas ainda por liquidar deste mês (e mais as receitas fixas por receber).</div>';
+  document.getElementById('eom-modal').classList.add('open');
 }
 // simulação da sobra mensal (fixas configuradas) nos próximos meses
 function openLeftoverSim(){

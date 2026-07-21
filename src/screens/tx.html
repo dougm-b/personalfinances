@@ -17,6 +17,13 @@
       <div id="tx-list"></div>
 
       <div class="card" style="margin-top:16px">
+        <div class="card-title">Saldo à Ordem no Fim do Mês</div>
+        <div class="stat-box" style="cursor:pointer" onclick="openEomSim('tx')">
+          <div class="l">Contas pessoais hoje − despesas/transferências a realizar até ao fim do mês → toca para o detalhe</div>
+          <div class="v" id="tx-eom">€0</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
         <div class="card-title">Fechamento do Mês</div>
         <div class="stat-grid">
           <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="tx-close-inc">€0</div></div>

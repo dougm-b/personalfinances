@@ -100,6 +100,9 @@ function renderBills(){
   const netEl = document.getElementById('bills-close-net');
   netEl.textContent = (inc-exp >= 0 ? '+' : '') + fmtEUR(round2(inc - exp));
   netEl.style.color = inc - exp >= 0 ? 'var(--good)' : 'var(--red)';
+  const eom = ordemEndOfMonth(M);
+  const be = document.getElementById('bills-eom');
+  be.textContent = fmtEUR(eom.v); be.style.color = eom.v >= 0 ? 'var(--good)' : 'var(--red)';
   const today = todayKey();
   const past = [], future = [];
   items.forEach(it => {
@@ -273,6 +276,26 @@ function deleteBill(){
   });
   state.recurringBills = state.recurringBills.filter(b=>b.id!==id);
   closeModal('bill-modal'); save(); showToast('🗑️ Eliminada (e transações associadas)');
+}
+// saldo à ordem previsto no fim do mês: contas pessoais hoje − o que falta
+// sair/entrar até ao fim do mês (fixas por liquidar e transferências)
+function openEomSim(prefix){
+  const M = (prefix === 'bills') ? (billsMonth || todayKey().slice(0,7)) : (txMonth || todayKey().slice(0,7));
+  const eom = ordemEndOfMonth(M);
+  document.getElementById('eom-body').innerHTML =
+    `<div class="stat-grid" style="margin-bottom:12px">
+      <div class="stat-box"><div class="l">Contas à ordem hoje</div><div class="v">${fmtEUR(eom.base)}</div></div>
+      <div class="stat-box"><div class="l">Previsto no fim de ${fmtMonth(M)}</div><div class="v" style="color:${eom.v>=0?'var(--good)':'var(--red)'}">${fmtEUR(eom.v)}</div></div>
+    </div>` +
+    (eom.items.length
+      ? '<div class="form-label">A realizar até ao fim do mês:</div><div class="timeline">' + eom.items.map(p => `
+        <div class="tl-item"><div class="tl-dot" style="background:${p.delta>=0?'var(--good)':'var(--red)'}"></div>
+          <div class="tl-info"><div class="t">${esc(p.name)}</div><div class="s">dia ${p.day} · ${p.delta>=0?'+':'-'}${fmtEUR(Math.abs(p.delta))}</div></div>
+          <div class="tl-val" style="color:${p.run>=0?'var(--txt)':'var(--red)'}">${fmtEUR(p.run)}</div>
+        </div>`).join('') + '</div>'
+      : '<div class="row-detail">Sem movimentos por liquidar até ao fim do mês.</div>') +
+    '<div class="note-box" style="margin-top:10px">Soma das contas à ordem pessoais hoje, menos as despesas/transferências fixas ainda por liquidar deste mês (e mais as receitas fixas por receber).</div>';
+  document.getElementById('eom-modal').classList.add('open');
 }
 // simulação da sobra mensal (fixas configuradas) nos próximos meses
 function openLeftoverSim(){

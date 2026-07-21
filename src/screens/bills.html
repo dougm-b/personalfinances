@@ -26,6 +26,13 @@
       <div id="bills-past"></div>
 
       <div class="card" style="margin-top:16px">
+        <div class="card-title">Saldo à Ordem no Fim do Mês</div>
+        <div class="stat-box" style="cursor:pointer" onclick="openEomSim('bills')">
+          <div class="l">Contas pessoais hoje − despesas/transferências a realizar até ao fim do mês → toca para o detalhe</div>
+          <div class="v" id="bills-eom">€0</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
         <div class="card-title">Fechamento do Mês</div>
         <div class="stat-grid">
           <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="bills-close-inc">€0</div></div>
