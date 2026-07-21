@@ -365,9 +365,22 @@
       "toRef": "acc:1",
       "from": "2026-07",
       "to": "2027-02"
+    },
+    {
+      "id": 16,
+      "name": "Despesas Mensais",
+      "day": 8,
+      "category": "Utilidades",
+      "amount": 300,
+      "kind": "transfer",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:3",
+      "from": "2026-08",
+      "to": "2027-08"
     }
   ],
-  "nextBillId": 16,
+  "nextBillId": 17,
   "creditCards": [
     {
       "id": 1,
