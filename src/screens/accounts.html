@@ -9,5 +9,11 @@
       </div>
       <div class="section-hdr"><h3>Contas Bancárias</h3><button class="add-btn" onclick="openAccountModal()">+ Nova</button></div>
       <div id="accounts-list"></div>
+
+      <div class="section-hdr"><h3>Transferências</h3><span style="display:flex;gap:8px">
+        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="openOneOffTransfer()">+ Pontual</button>
+        <button class="add-btn" onclick="openRecurringTransfer()">+ Recorrente</button></span></div>
+      <div id="transfers-list"></div>
+      <div class="note-box">Recorrentes repetem-se todos os meses no dia definido (geridas também na aba Fixas); pontuais são executadas uma única vez e ficam em Transações.</div>
     </div>
 

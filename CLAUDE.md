@@ -57,8 +57,9 @@ src/js/dashboard.js          Dashboard: património (invest + à ordem),
                               também usada pela aba Transações)
 src/js/accounts.js           Contas: lista, detalhe com projeção de saldo
 src/js/tx.js                 Transações: filtros, CRUD, transferências
-src/js/bills.js              Fixas (despesa/receita, registar pagamento) +
-                              Movimentos Previstos
+src/js/bills.js              Fixas (despesa/receita/transferência, liquidações,
+                              ordenação) — Movimentos Previstos removidos da UI
+                              (código guardado com null-check)
 src/js/cards.js              Cartões de crédito + compras financiadas
 src/js/invest.js             Investimentos (movimentos, corrigir valor) +
                               metas de poupança

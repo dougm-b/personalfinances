@@ -37,7 +37,7 @@ function fixasItemsForMonth(M){
         category:b.category, accountId:b.accountId, fromRef:b.fromRef, toRef:b.toRef, bill:b });
   });
   state.creditCards.forEach(c => (c.financedItems||[]).forEach(f => {
-    if (!f.installment) return;
+    if (c.professional || !f.installment) return;
     const start = f.startMonth || '0000-01';
     const end = f.months ? addMonthsKey(start, f.months - 1) : '9999-12';
     if (start <= M && M <= end)
@@ -47,6 +47,7 @@ function fixasItemsForMonth(M){
   // compras avulsas do cartão: a fatura do ciclo aparece no mês seguinte ao
   // último movimento avulso, no dia de débito, até ser liquidada
   state.creditCards.forEach(c => {
+    if (c.professional) return; // cartões da empresa ficam fora das Fixas
     const s = settlementOf('cardbill:'+c.id, M);
     if (s) {
       // já liquidada neste mês: mantém-se visível (riscada) e desmarcável
@@ -271,6 +272,7 @@ function registerBillPayment(){
 // ══════════════════════════════════════════
 function renderPlanned(){
   const el = document.getElementById('planned-list');
+  if (!el) return; // secção removida da aba Fixas
   const list = state.plannedTx.slice().sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
   el.innerHTML = list.length ? list.map(p => {
     const acc = state.accounts.find(a=>a.id===p.accountId);

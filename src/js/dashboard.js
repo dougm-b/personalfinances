@@ -62,7 +62,8 @@ function updateDash(){
   document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
 
   const cardsEl = document.getElementById('d-cards');
-  cardsEl.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
+  const persCards = state.creditCards.filter(c => !c.professional);
+  cardsEl.innerHTML = persCards.length ? persCards.map(c => {
     const used = cardUsed(c);
     if (!c.limit) {
       return `<div style="margin-bottom:10px">

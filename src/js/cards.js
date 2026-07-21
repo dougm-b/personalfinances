@@ -21,7 +21,7 @@ function finRemaining(c, f){
 // ══════════════════════════════════════════
 function renderCards(){
   const el = document.getElementById('cards-list');
-  el.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
+  const cardRow = c => {
     const used = cardUsed(c);
     const avail = c.limit ? round2(c.limit - used) : null;
     return `<div class="row" onclick="openCardDetail(${c.id})">
@@ -30,7 +30,13 @@ function renderCards(){
         <div class="row-detail">${c.limit ? 'disponível ' + fmtEUR(avail) : 'limite não definido'}</div></div>
       <div class="row-val">${fmtEUR(used)}${c.limit ? ' / ' + fmtEUR(c.limit) : ''}</div>
     </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>';
+  };
+  const pers = state.creditCards.filter(c => !c.professional);
+  const prof = state.creditCards.filter(c => c.professional);
+  el.innerHTML = (pers.length ? pers.map(cardRow).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>')
+    + (prof.length ? `<div class="section-hdr" style="margin-top:20px"><h3>Profissional</h3></div>
+      <div class="note-box" style="margin-bottom:8px">Cartões da empresa — as prestações e faturas destes cartões não entram nas Fixas nem no balanço pessoal.</div>`
+      + prof.map(cardRow).join('') : '');
 }
 function openCardDetail(id){
   const c = state.creditCards.find(x=>x.id===id);
@@ -117,6 +123,7 @@ function openCardModal(id){
     document.getElementById('card-monthly').value = c.monthlyDue || '';
     document.getElementById('card-dueday').value = c.dueDay || '';
     document.getElementById('card-adjavail').value = '';
+    document.getElementById('card-prof').checked = !!c.professional;
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
@@ -124,6 +131,7 @@ function openCardModal(id){
     document.getElementById('card-monthly').value = '';
     document.getElementById('card-dueday').value = '';
     document.getElementById('card-adjavail').value = '';
+    document.getElementById('card-prof').checked = false;
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -134,7 +142,8 @@ function saveCard(){
   const data = { name, limit: parseFloat(document.getElementById('card-limit').value)||0,
     used: parseFloat(document.getElementById('card-used').value)||0,
     monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
-    dueDay: parseInt(document.getElementById('card-dueday').value)||null };
+    dueDay: parseInt(document.getElementById('card-dueday').value)||null,
+    professional: document.getElementById('card-prof').checked };
   let card;
   if (id) { card = state.creditCards.find(c=>c.id==id); Object.assign(card, data); }
   else { card = { id: state.nextCardId++, financedItems:[], ...data }; state.creditCards.push(card); }

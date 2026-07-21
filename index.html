@@ -316,6 +316,12 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       </div>
       <div class="section-hdr"><h3>Contas Bancárias</h3><button class="add-btn" onclick="openAccountModal()">+ Nova</button></div>
       <div id="accounts-list"></div>
+
+      <div class="section-hdr"><h3>Transferências</h3><span style="display:flex;gap:8px">
+        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="openOneOffTransfer()">+ Pontual</button>
+        <button class="add-btn" onclick="openRecurringTransfer()">+ Recorrente</button></span></div>
+      <div id="transfers-list"></div>
+      <div class="note-box">Recorrentes repetem-se todos os meses no dia definido (geridas também na aba Fixas); pontuais são executadas uma única vez e ficam em Transações.</div>
     </div>
 
     <!-- ══════════ TRANSAÇÕES ══════════ -->
@@ -352,9 +358,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button></div>
       <div id="bills-future"></div>
 
-      <div class="section-hdr"><h3>Movimentos Previstos</h3><button class="add-btn" onclick="openPlannedModal()">+ Novo</button></div>
-      <div id="planned-list"></div>
-      <div class="note-box">Receitas/despesas futuras (ex: ordenado a receber). Entram na projeção de saldo de cada conta (aba Contas) e podem ser editadas até serem confirmadas.</div>
     </div>
     <!-- ══════════ CARTÃO ══════════ -->
     <div class="screen" id="cards-screen">
@@ -554,6 +557,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">A pagar este mês (€)</label><input class="form-input" id="card-monthly" type="number" step="0.01" placeholder="Ex: 200"/></div>
       <div class="form-group"><label class="form-label">Dia do débito no mês</label><input class="form-input" id="card-dueday" type="number" min="1" max="31" placeholder="Ex: 11"/></div>
     </div>
+    <label class="form-label" style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="card-prof" style="width:18px;height:18px;accent-color:var(--acc)"/>
+      Cartão profissional (empresa — fora das Fixas e do balanço pessoal)</label>
     <div class="form-group"><label class="form-label">Ajuste de Saldo Disponível (€) — opcional</label><input class="form-input" id="card-adjavail" type="number" step="0.01" placeholder="Insere o disponível real que o banco mostra"/></div>
     <div class="note-box" style="margin-bottom:12px">Ao preencher, o sistema calcula a diferença face ao disponível esperado (limite − prestações em falta − avulsas anteriores) e regista automaticamente uma compra avulsa ou um pagamento avulso deste ciclo, que fica agregado para o futuro.</div>
     <button class="btn-primary" onclick="saveCard()">Guardar</button>
@@ -1272,7 +1278,8 @@ function updateDash(){
   document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
 
   const cardsEl = document.getElementById('d-cards');
-  cardsEl.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
+  const persCards = state.creditCards.filter(c => !c.professional);
+  cardsEl.innerHTML = persCards.length ? persCards.map(c => {
     const used = cardUsed(c);
     if (!c.limit) {
       return `<div style="margin-bottom:10px">
@@ -1506,6 +1513,28 @@ function renderAccounts(){
     + (prof.length ? `<div class="section-hdr" style="margin-top:20px"><h3>Profissional</h3></div>
       <div class="note-box" style="margin-bottom:8px">Contas da empresa — fora do património líquido e das fixas. Só impactam as tuas contas quando fazes transferências de/para elas (entradas e saídas de capital).</div>`
       + prof.map(accountRow).join('') : '');
+  renderTransfersList();
+}
+function renderTransfersList(){
+  const el = document.getElementById('transfers-list');
+  const trBills = state.recurringBills.filter(x => x.kind === 'transfer');
+  el.innerHTML = trBills.length ? trBills.map(x => `
+    <div class="row" onclick="openBillModal(${x.id})">
+      <div class="row-emoji">🔁</div>
+      <div class="row-info"><div class="row-name">${esc(x.name)}</div>
+        <div class="row-detail">todos os dias ${x.day} · ${esc((getEntity(x.fromRef)||{}).name||'?')} → ${esc((getEntity(x.toRef)||{}).name||'?')}${x.to ? ' · até ' + fmtMonth(x.to) : ''}</div></div>
+      <div class="row-val" style="color:var(--blue)">${fmtEUR(x.amount)} ⇄</div>
+    </div>`).join('') : '<div class="empty-state" style="padding:10px"><p>Sem transferências agendadas</p></div>';
+}
+function openOneOffTransfer(){
+  openTxModal();
+  document.getElementById('tx-kind').value = 'transfer';
+  onTxKindChange();
+}
+function openRecurringTransfer(){
+  openBillModal();
+  document.getElementById('bill-kind').value = 'transfer';
+  onBillKindChange();
 }
 function openAccountDetail(id){
   const a = state.accounts.find(x => x.id === id);
@@ -1718,7 +1747,7 @@ function fixasItemsForMonth(M){
         category:b.category, accountId:b.accountId, fromRef:b.fromRef, toRef:b.toRef, bill:b });
   });
   state.creditCards.forEach(c => (c.financedItems||[]).forEach(f => {
-    if (!f.installment) return;
+    if (c.professional || !f.installment) return;
     const start = f.startMonth || '0000-01';
     const end = f.months ? addMonthsKey(start, f.months - 1) : '9999-12';
     if (start <= M && M <= end)
@@ -1728,6 +1757,7 @@ function fixasItemsForMonth(M){
   // compras avulsas do cartão: a fatura do ciclo aparece no mês seguinte ao
   // último movimento avulso, no dia de débito, até ser liquidada
   state.creditCards.forEach(c => {
+    if (c.professional) return; // cartões da empresa ficam fora das Fixas
     const s = settlementOf('cardbill:'+c.id, M);
     if (s) {
       // já liquidada neste mês: mantém-se visível (riscada) e desmarcável
@@ -1952,6 +1982,7 @@ function registerBillPayment(){
 // ══════════════════════════════════════════
 function renderPlanned(){
   const el = document.getElementById('planned-list');
+  if (!el) return; // secção removida da aba Fixas
   const list = state.plannedTx.slice().sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
   el.innerHTML = list.length ? list.map(p => {
     const acc = state.accounts.find(a=>a.id===p.accountId);
@@ -2043,7 +2074,7 @@ function finRemaining(c, f){
 // ══════════════════════════════════════════
 function renderCards(){
   const el = document.getElementById('cards-list');
-  el.innerHTML = state.creditCards.length ? state.creditCards.map(c => {
+  const cardRow = c => {
     const used = cardUsed(c);
     const avail = c.limit ? round2(c.limit - used) : null;
     return `<div class="row" onclick="openCardDetail(${c.id})">
@@ -2052,7 +2083,13 @@ function renderCards(){
         <div class="row-detail">${c.limit ? 'disponível ' + fmtEUR(avail) : 'limite não definido'}</div></div>
       <div class="row-val">${fmtEUR(used)}${c.limit ? ' / ' + fmtEUR(c.limit) : ''}</div>
     </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>';
+  };
+  const pers = state.creditCards.filter(c => !c.professional);
+  const prof = state.creditCards.filter(c => c.professional);
+  el.innerHTML = (pers.length ? pers.map(cardRow).join('') : '<div class="empty-state"><div class="icon">💳</div><p>Sem cartões registados</p></div>')
+    + (prof.length ? `<div class="section-hdr" style="margin-top:20px"><h3>Profissional</h3></div>
+      <div class="note-box" style="margin-bottom:8px">Cartões da empresa — as prestações e faturas destes cartões não entram nas Fixas nem no balanço pessoal.</div>`
+      + prof.map(cardRow).join('') : '');
 }
 function openCardDetail(id){
   const c = state.creditCards.find(x=>x.id===id);
@@ -2139,6 +2176,7 @@ function openCardModal(id){
     document.getElementById('card-monthly').value = c.monthlyDue || '';
     document.getElementById('card-dueday').value = c.dueDay || '';
     document.getElementById('card-adjavail').value = '';
+    document.getElementById('card-prof').checked = !!c.professional;
   } else {
     document.getElementById('card-name').value = '';
     document.getElementById('card-limit').value = '';
@@ -2146,6 +2184,7 @@ function openCardModal(id){
     document.getElementById('card-monthly').value = '';
     document.getElementById('card-dueday').value = '';
     document.getElementById('card-adjavail').value = '';
+    document.getElementById('card-prof').checked = false;
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -2156,7 +2195,8 @@ function saveCard(){
   const data = { name, limit: parseFloat(document.getElementById('card-limit').value)||0,
     used: parseFloat(document.getElementById('card-used').value)||0,
     monthlyDue: parseFloat(document.getElementById('card-monthly').value)||0,
-    dueDay: parseInt(document.getElementById('card-dueday').value)||null };
+    dueDay: parseInt(document.getElementById('card-dueday').value)||null,
+    professional: document.getElementById('card-prof').checked };
   let card;
   if (id) { card = state.creditCards.find(c=>c.id==id); Object.assign(card, data); }
   else { card = { id: state.nextCardId++, financedItems:[], ...data }; state.creditCards.push(card); }

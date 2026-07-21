@@ -22,6 +22,28 @@ function renderAccounts(){
     + (prof.length ? `<div class="section-hdr" style="margin-top:20px"><h3>Profissional</h3></div>
       <div class="note-box" style="margin-bottom:8px">Contas da empresa — fora do património líquido e das fixas. Só impactam as tuas contas quando fazes transferências de/para elas (entradas e saídas de capital).</div>`
       + prof.map(accountRow).join('') : '');
+  renderTransfersList();
+}
+function renderTransfersList(){
+  const el = document.getElementById('transfers-list');
+  const trBills = state.recurringBills.filter(x => x.kind === 'transfer');
+  el.innerHTML = trBills.length ? trBills.map(x => `
+    <div class="row" onclick="openBillModal(${x.id})">
+      <div class="row-emoji">🔁</div>
+      <div class="row-info"><div class="row-name">${esc(x.name)}</div>
+        <div class="row-detail">todos os dias ${x.day} · ${esc((getEntity(x.fromRef)||{}).name||'?')} → ${esc((getEntity(x.toRef)||{}).name||'?')}${x.to ? ' · até ' + fmtMonth(x.to) : ''}</div></div>
+      <div class="row-val" style="color:var(--blue)">${fmtEUR(x.amount)} ⇄</div>
+    </div>`).join('') : '<div class="empty-state" style="padding:10px"><p>Sem transferências agendadas</p></div>';
+}
+function openOneOffTransfer(){
+  openTxModal();
+  document.getElementById('tx-kind').value = 'transfer';
+  onTxKindChange();
+}
+function openRecurringTransfer(){
+  openBillModal();
+  document.getElementById('bill-kind').value = 'transfer';
+  onBillKindChange();
 }
 function openAccountDetail(id){
   const a = state.accounts.find(x => x.id === id);
