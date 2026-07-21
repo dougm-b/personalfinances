@@ -1,13 +1,60 @@
 // ══════════════════════════════════════════
 // CONTAS
 // ══════════════════════════════════════════
+// saldo previsto no último dia do mês: saldo atual + fixas do mês por
+// liquidar que afetam esta conta (despesas/receitas e transferências)
+function accountEndOfMonth(a){
+  const M = todayKey().slice(0,7), today = todayKey();
+  let v = a.balance || 0;
+  const items = [];
+  fixasItemsForMonth(M).forEach(it => {
+    if (it.amount == null || settlementOf(it.key, M)) return;
+    const dk = M + '-' + String(it.day).padStart(2,'0');
+    if (dk < today) return;
+    let delta = 0;
+    if (it.kind === 'transfer') {
+      if (it.fromRef === 'acc:' + a.id) delta -= it.amount;
+      if (it.toRef === 'acc:' + a.id) delta += it.amount;
+    } else if (it.accountId === a.id) {
+      delta = it.kind === 'income' ? it.amount : -it.amount;
+    }
+    if (delta !== 0) { v = round2(v + delta); items.push({ name: it.name, day: it.day, delta, run: v }); }
+  });
+  return { v: round2(v), items };
+}
+let accFlipped = {};
+let lastAccSwipe = 0;
+function bindAccountSwipes(){
+  const list = document.getElementById('accounts-list');
+  let sx = null, rowEl = null;
+  list.onpointerdown = e => { const r = e.target.closest('.row[data-accid]'); if (r) { sx = e.clientX; rowEl = r; } };
+  list.onpointerup = e => {
+    if (rowEl && sx != null && Math.abs(e.clientX - sx) > 40) {
+      const id = parseInt(rowEl.dataset.accid);
+      accFlipped[id] = !accFlipped[id];
+      lastAccSwipe = Date.now();
+      renderAccounts();
+    }
+    sx = null; rowEl = null;
+  };
+}
 function accountRow(a){
-  const nPlanned = state.plannedTx.filter(p => p.accountId === a.id).length;
   const emoji = a.type === 'Profissional' ? '💼' : '🏦';
-  return `
-    <div class="row" onclick="openAccountDetail(${a.id})">
+  if (accFlipped[a.id]) {
+    const eom = accountEndOfMonth(a);
+    const bg = eom.v >= 0 ? 'var(--good)' : 'var(--red)';
+    return `
+    <div class="row" data-accid="${a.id}" onclick="openAccountDetail(${a.id})" style="background:${bg};border-color:${bg}">
       <div class="row-emoji">${emoji}</div>
-      <div class="row-info"><div class="row-name">${esc(a.name)}</div><div class="row-detail">${esc(a.type)}${a.updatedAt ? ' · atualizada ' + fmtDateTime(a.updatedAt) : ''}${nPlanned ? ` · ${nPlanned} previsto${nPlanned>1?'s':''}` : ''}</div></div>
+      <div class="row-info"><div class="row-name" style="color:#fff">${esc(a.name)}</div>
+        <div class="row-detail" style="color:rgba(255,255,255,.85)">saldo previsto no fim do mês · desliza para voltar</div></div>
+      <div class="row-val" style="color:#fff">${fmtEUR(eom.v)}</div>
+    </div>`;
+  }
+  return `
+    <div class="row" data-accid="${a.id}" onclick="openAccountDetail(${a.id})">
+      <div class="row-emoji">${emoji}</div>
+      <div class="row-info"><div class="row-name">${esc(a.name)}</div><div class="row-detail">${esc(a.type)}${a.updatedAt ? ' · atualizada ' + fmtDateTime(a.updatedAt) : ''} · desliza p/ fim do mês</div></div>
       <div class="row-val">${fmtEUR(a.balance)}</div>
     </div>`;
 }
@@ -23,6 +70,7 @@ function renderAccounts(){
       <div class="note-box" style="margin-bottom:8px">Contas da empresa — fora do património líquido e das fixas. Só impactam as tuas contas quando fazes transferências de/para elas (entradas e saídas de capital).</div>`
       + prof.map(accountRow).join('') : '');
   renderTransfersList();
+  bindAccountSwipes();
 }
 function renderTransfersList(){
   const el = document.getElementById('transfers-list');
@@ -46,22 +94,22 @@ function openRecurringTransfer(){
   onBillKindChange();
 }
 function openAccountDetail(id){
+  if (Date.now() - lastAccSwipe < 400) return; // foi um deslize, não um toque
   const a = state.accounts.find(x => x.id === id);
   document.getElementById('acc-detail-title').textContent = a.name;
-  const planned = state.plannedTx.filter(p => p.accountId === id).slice().sort((x,y) => x.dueDate.localeCompare(y.dueDate));
-  let run = a.balance || 0;
-  let html = `<div class="stat-box" style="margin-bottom:12px"><div class="l">Saldo a hoje</div><div class="v">${fmtEUR(run)}</div></div>`;
-  if (planned.length) {
-    html += '<div class="form-label" style="margin-bottom:4px">Saldo previsto ao longo do tempo:</div><div class="timeline">' + planned.map(p => {
-      run += p.amount;
-      return `<div class="tl-item" onclick="closeModal('account-detail-modal');openPlannedModal(${p.id})" style="cursor:pointer">
-        <div class="tl-dot" style="background:${p.amount>=0?'var(--good)':'var(--red)'}"></div>
-        <div class="tl-info"><div class="t">${esc(p.desc)}</div><div class="s">${p.dueDate} · ${p.amount>=0?'+':'-'}${fmtEUR(Math.abs(p.amount))}</div></div>
-        <div class="tl-val" style="color:${run>=0?'var(--txt)':'var(--red)'}">${fmtEUR(run)}</div>
-      </div>`;
-    }).join('') + '</div>';
+  const eom = accountEndOfMonth(a);
+  let html = `<div class="stat-grid" style="margin-bottom:12px">
+    <div class="stat-box"><div class="l">Saldo a hoje</div><div class="v">${fmtEUR(a.balance||0)}</div></div>
+    <div class="stat-box"><div class="l">Previsto no fim do mês</div><div class="v" style="color:${eom.v>=0?'var(--good)':'var(--red)'}">${fmtEUR(eom.v)}</div></div>
+  </div>`;
+  if (eom.items.length) {
+    html += '<div class="form-label" style="margin-bottom:4px">Fixas deste mês por liquidar nesta conta:</div><div class="timeline">' + eom.items.map(p => `
+      <div class="tl-item"><div class="tl-dot" style="background:${p.delta>=0?'var(--good)':'var(--red)'}"></div>
+        <div class="tl-info"><div class="t">${esc(p.name)}</div><div class="s">dia ${p.day} · ${p.delta>=0?'+':'-'}${fmtEUR(Math.abs(p.delta))}</div></div>
+        <div class="tl-val" style="color:${p.run>=0?'var(--txt)':'var(--red)'}">${fmtEUR(p.run)}</div>
+      </div>`).join('') + '</div>';
   } else {
-    html += '<div class="empty-state" style="padding:14px"><p>Sem movimentos previstos para esta conta.</p><p style="font-size:12px;margin-top:6px">Adiciona-os na aba Fixas → Movimentos Previstos.</p></div>';
+    html += '<div class="row-detail">Sem fixas por liquidar este mês associadas a esta conta.</div>';
   }
   document.getElementById('acc-detail-body').innerHTML = html;
   document.getElementById('acc-detail-edit').onclick = () => { closeModal('account-detail-modal'); openAccountModal(id); };
