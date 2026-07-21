@@ -128,8 +128,7 @@ function defaultState(){
       loan:{
         credor:'Deny e Mauricio',
         total:30757.19,
-        baseRemaining:30757.19,
-        baseMonth:'2025-02',
+        extraPaid:0,
         paymentPlans:[
           {id:1, amount:300, from:'2025-03', to:'2026-02'}
         ],
@@ -178,13 +177,19 @@ function migrateState(loaded){
   s.house = Object.assign({}, base.house, loaded.house || {});
   s.house.loan = Object.assign({}, base.house.loan, (loaded.house && loaded.house.loan) || {});
   const ln = s.house.loan;
-  // migrar esquema antigo (currentRemaining fixo) para o novo (base + débitos mensais)
-  if (loaded.house && loaded.house.loan && loaded.house.loan.baseRemaining == null) {
-    ln.baseRemaining = loaded.house.loan.currentRemaining != null ? loaded.house.loan.currentRemaining : ln.total;
-    ln.baseMonth = todayKey().slice(0,7);
-    ln.paymentPlans = [];
-    ln.nextPlanId = 1;
+  const loadedLoan = (loaded.house && loaded.house.loan) || {};
+  if (loadedLoan.extraPaid == null) {
+    // converter o antigo saldo-base corrigido num ajuste (extraPaid), para o
+    // saldo em dívida se manter, agora calculado a partir dos débitos mensais.
+    const cur = todayKey().slice(0,7);
+    let scheduled = 0;
+    (ln.paymentPlans||[]).forEach(p => { let m = p.from; while (m <= p.to && m <= cur) { scheduled += p.amount; m = nextMonth(m); } });
+    const prevRem = ln.baseRemaining != null ? ln.baseRemaining
+      : (loaded.house && loaded.house.loan && loaded.house.loan.currentRemaining != null ? loaded.house.loan.currentRemaining : null);
+    ln.extraPaid = prevRem != null ? round2((ln.total||0) - scheduled - prevRem) : 0;
   }
+  delete ln.baseRemaining;
+  delete ln.baseMonth;
   delete ln.currentRemaining;
   delete ln.schedule;
   if (!s.house.rooms || !s.house.rooms.length) s.house.rooms = base.house.rooms;

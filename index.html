@@ -948,8 +948,7 @@ function defaultState(){
       loan:{
         credor:'Deny e Mauricio',
         total:30757.19,
-        baseRemaining:30757.19,
-        baseMonth:'2025-02',
+        extraPaid:0,
         paymentPlans:[
           {id:1, amount:300, from:'2025-03', to:'2026-02'}
         ],
@@ -998,13 +997,19 @@ function migrateState(loaded){
   s.house = Object.assign({}, base.house, loaded.house || {});
   s.house.loan = Object.assign({}, base.house.loan, (loaded.house && loaded.house.loan) || {});
   const ln = s.house.loan;
-  // migrar esquema antigo (currentRemaining fixo) para o novo (base + débitos mensais)
-  if (loaded.house && loaded.house.loan && loaded.house.loan.baseRemaining == null) {
-    ln.baseRemaining = loaded.house.loan.currentRemaining != null ? loaded.house.loan.currentRemaining : ln.total;
-    ln.baseMonth = todayKey().slice(0,7);
-    ln.paymentPlans = [];
-    ln.nextPlanId = 1;
+  const loadedLoan = (loaded.house && loaded.house.loan) || {};
+  if (loadedLoan.extraPaid == null) {
+    // converter o antigo saldo-base corrigido num ajuste (extraPaid), para o
+    // saldo em dívida se manter, agora calculado a partir dos débitos mensais.
+    const cur = todayKey().slice(0,7);
+    let scheduled = 0;
+    (ln.paymentPlans||[]).forEach(p => { let m = p.from; while (m <= p.to && m <= cur) { scheduled += p.amount; m = nextMonth(m); } });
+    const prevRem = ln.baseRemaining != null ? ln.baseRemaining
+      : (loaded.house && loaded.house.loan && loaded.house.loan.currentRemaining != null ? loaded.house.loan.currentRemaining : null);
+    ln.extraPaid = prevRem != null ? round2((ln.total||0) - scheduled - prevRem) : 0;
   }
+  delete ln.baseRemaining;
+  delete ln.baseMonth;
   delete ln.currentRemaining;
   delete ln.schedule;
   if (!s.house.rooms || !s.house.rooms.length) s.house.rooms = base.house.rooms;
@@ -2695,18 +2700,21 @@ function deleteGoal(){
 // ══════════════════════════════════════════
 // CASA / EMPRÉSTIMO — helpers (usados também pelo dashboard e pelo arranque)
 // ══════════════════════════════════════════
-// Saldo em dívida do empréstimo = valor-base (corrigível manualmente) menos os
-// débitos mensais configurados nos meses decorridos desde essa correção.
-function computeLoanRemaining(){
-  const loan = state.house.loan;
-  let rem = loan.baseRemaining != null ? loan.baseRemaining : loan.total;
+// Total já pago com base nos débitos mensais configurados que já decorreram
+// (por período) + eventuais pagamentos/ajustes adicionais (extraPaid).
+function loanScheduledByPlan(){
   const cur = todayKey().slice(0,7);
-  let m = loan.baseMonth || cur;
-  while (m < cur) {
-    m = nextMonth(m);
-    (loan.paymentPlans||[]).forEach(p => { if (p.from <= m && m <= p.to) rem -= p.amount; });
-  }
-  return Math.max(0, rem);
+  return (state.house.loan.paymentPlans||[]).map(p => {
+    let count = 0, m = p.from;
+    while (m <= p.to && m <= cur) { count++; m = nextMonth(m); }
+    return { plan: p, count, total: round2(count * p.amount) };
+  });
+}
+function loanScheduledPaid(){ return round2(loanScheduledByPlan().reduce((s,x) => s + x.total, 0)); }
+function loanPaidToDate(){ return round2(loanScheduledPaid() + (state.house.loan.extraPaid || 0)); }
+// Saldo em dívida = total emprestado − o que já foi pago (débitos decorridos + ajustes)
+function computeLoanRemaining(){
+  return Math.max(0, round2((state.house.loan.total||0) - loanPaidToDate()));
 }
 
 // total esperado da renda dos quartos num dado mês (rendas base + ajustes)
@@ -2784,9 +2792,9 @@ function openHouseRemainingModal(){
   document.getElementById('house-modal').classList.add('open');
 }
 function saveHouseRemaining(){
-  // correção manual: fixa o valor-base neste mês; débitos futuros descontam a partir daqui
-  state.house.loan.baseRemaining = parseFloat(document.getElementById('house-remaining').value)||0;
-  state.house.loan.baseMonth = todayKey().slice(0,7);
+  // correção manual: acerta o pagamento adicional para o saldo bater no valor indicado
+  const desired = parseFloat(document.getElementById('house-remaining').value)||0;
+  state.house.loan.extraPaid = round2((state.house.loan.total||0) - loanScheduledPaid() - desired);
   closeModal('house-modal'); save(); showToast('✅ Saldo em dívida corrigido');
 }
 function openLoanPayModal(){
@@ -2799,8 +2807,7 @@ function saveLoanPayment(){
   const amt = parseFloat(document.getElementById('loan-pay-amount').value);
   if (!amt || amt <= 0) { showToast('Indica um valor válido'); return; }
   const date = document.getElementById('loan-pay-date').value || todayKey();
-  state.house.loan.baseRemaining = Math.max(0, computeLoanRemaining() - amt);
-  state.house.loan.baseMonth = todayKey().slice(0,7);
+  state.house.loan.extraPaid = round2((state.house.loan.extraPaid||0) + amt);
   const t = { id: state.nextTxId++, desc: 'Pagamento empréstimo ' + state.house.loan.credor,
     kind:'expense', amount:-Math.abs(amt), date, category:'Casa',
     accountId: parseInt(document.getElementById('loan-pay-account').value)||null, applied:true };
@@ -2852,11 +2859,18 @@ function deletePlan(){
 function renderHouse(){
   const h = state.house;
   const loan = h.loan;
+  const proj = projectLoanPayoff();
+  const estimate = computeLoanRemaining() <= 0
+    ? 'Empréstimo pago na totalidade 🎉'
+    : (proj && proj.months > 0
+        ? `Ao ritmo do débito mensal configurado (${fmtEUR(proj.monthly)}/mês), terminas de pagar em <b style="color:var(--acc)">${fmtMonth(proj.end)}</b> — daqui a ${proj.months} ${proj.months===1?'mês':'meses'}.`
+        : 'Configura um débito mensal para estimar quando terminas de pagar.');
   document.getElementById('house-loan-detail').innerHTML = `
     <div class="stat-grid">
       <div class="stat-box"><div class="l">Valor Emprestado</div><div class="v">${fmtEUR(loan.total)}</div></div>
       <div class="stat-box"><div class="l">Saldo em Dívida Atual</div><div class="v">${fmtEUR(computeLoanRemaining())}</div></div>
     </div>
+    <div class="note-box" style="margin:10px 0">📅 ${estimate}</div>
     <button class="btn-primary" onclick="openLoanPayModal()">Registar pagamento</button>
     <button class="btn-secondary" onclick="openHouseRemainingModal()">Corrigir saldo em dívida manualmente</button>`;
 
@@ -2908,9 +2922,11 @@ function openLoanHistory(){
       estimate = 'Regista um pagamento ou configura um débito mensal para calcular a estimativa de fim.';
     }
   }
-  const sinceCorrection = round2((loan.baseRemaining != null ? loan.baseRemaining : loan.total) - rem);
   const activePlan = (loan.paymentPlans||[]).find(p => p.from <= curM && curM <= p.to);
   const monthlyNow = activePlan ? activePlan.amount : (payTxs.length ? Math.abs(payTxs[0].amount) : 0);
+  // pago com base nos débitos mensais configurados que já decorreram, por período
+  const byPlan = loanScheduledByPlan().filter(x => x.count > 0);
+  const extra = round2(loan.extraPaid || 0);
   document.getElementById('loan-history-body').innerHTML = `
     <div class="stat-grid" style="margin-bottom:12px">
       <div class="stat-box"><div class="l">Recebido</div><div class="v">${fmtEUR(totalReceived)}</div></div>
@@ -2919,26 +2935,22 @@ function openLoanHistory(){
       <div class="stat-box"><div class="l">Débito mensal atual</div><div class="v">${monthlyNow ? fmtEUR(monthlyNow) : '—'}</div></div>
     </div>
     <div class="note-box" style="margin-bottom:12px">${estimate}</div>
+    <div class="form-label" style="margin-top:12px">Montantes pagos (débito mensal configurado que já decorreu):</div>
+    ${byPlan.length ? `<div class="timeline">${byPlan.map(x => `
+      <div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
+        <div class="tl-info"><div class="t">${fmtEUR(x.plan.amount)}/mês · ${fmtMonth(x.plan.from)} → ${fmtMonth(x.plan.to)}</div><div class="s">${x.count} ${x.count===1?'mês decorrido':'meses decorridos'}</div></div>
+        <div class="tl-val">${fmtEUR(x.total)}</div>
+      </div>`).join('')}${extra !== 0 ? `
+      <div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
+        <div class="tl-info"><div class="t">Pagamentos/ajustes adicionais</div></div>
+        <div class="tl-val">${fmtEUR(extra)}</div></div>` : ''}</div>` : '<div class="row-detail">Ainda sem débitos decorridos.</div>'}
     <div class="form-label" style="margin-top:12px">Transferências recebidas (toca em 🗑 para apagar):</div>
     <div class="timeline">${loan.transfers.map((t,i) => `
       <div class="tl-item"><div class="tl-dot"${t.amount<0?' style="background:var(--warn)"':''}></div>
         <div class="tl-info"><div class="t">${esc(t.label || ('Transferência de ' + loan.credor))}</div><div class="s">${t.date}</div></div>
         <div class="tl-val"${t.amount<0?' style="color:var(--warn)"':''}>${fmtEUR(t.amount)}</div>
         <button class="mg-icon-btn" style="background:var(--g3);border:none;color:var(--txt2);border-radius:50%;width:24px;height:24px;cursor:pointer;flex-shrink:0" onclick="deleteLoanTransfer(${i})">🗑</button>
-      </div>`).join('')}</div>
-    <div class="form-label" style="margin-top:12px">Montantes pagos:</div>
-    ${sinceCorrection > 0 ? `<div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
-      <div class="tl-info"><div class="t">Débitos mensais desde a última correção do saldo</div><div class="s">desde ${fmtMonth(loan.baseMonth||curM)}</div></div>
-      <div class="tl-val">${fmtEUR(sinceCorrection)}</div></div>` : ''}
-    ${totalPaid - sinceCorrection > 0.005 ? `<div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
-      <div class="tl-info"><div class="t">Pago antes da última correção do saldo</div><div class="s">já refletido no acerto de ${fmtMonth(loan.baseMonth||curM)}</div></div>
-      <div class="tl-val">${fmtEUR(round2(totalPaid - sinceCorrection))}</div></div>` : ''}
-    ${payTxs.length ? `<div class="form-label" style="margin-top:12px">Transações de pagamento (detalhe):</div>
-    <div class="timeline">${payTxs.map(t => `
-      <div class="tl-item"><div class="tl-dot" style="background:var(--good)"></div>
-        <div class="tl-info"><div class="t">${esc(t.desc)}</div><div class="s">${t.date}</div></div>
-        <div class="tl-val">${fmtEUR(Math.abs(t.amount))}</div>
-      </div>`).join('')}</div>` : (totalPaid <= 0 ? '<div class="row-detail">Ainda sem pagamentos.</div>' : '')}`;
+      </div>`).join('')}</div>`;
   document.getElementById('loan-history-modal').classList.add('open');
 }
 
