@@ -15,5 +15,17 @@
       </div>
       <div class="chip-row" id="tx-filter-chips"></div>
       <div id="tx-list"></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Fechamento do Mês</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="tx-close-inc">€0</div></div>
+          <div class="stat-box"><div class="l">Total pago</div><div class="v neg" id="tx-close-exp">€0</div></div>
+        </div>
+        <div class="stat-box" style="margin-top:10px;cursor:pointer" onclick="openLeftoverSim()">
+          <div class="l">Balanço das operações → toca para simular os meses futuros</div>
+          <div class="v" id="tx-close-net">€0</div>
+        </div>
+      </div>
     </div>
 

@@ -270,8 +270,8 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       </div>
 
       <div class="stat-grid" style="margin-bottom:12px">
-        <div class="stat-box" onclick="openMonthBalance()" style="cursor:pointer"><div class="l">Receitas (mês) →</div><div class="v pos" id="d-income">€0</div></div>
-        <div class="stat-box" onclick="openMonthBalance()" style="cursor:pointer"><div class="l">Despesas (mês) →</div><div class="v neg" id="d-expense">€0</div></div>
+        <div class="stat-box" onclick="openMonthBalance()" style="cursor:pointer"><div class="l" id="d-income-lbl">Receitas (mês) →</div><div class="v pos" id="d-income">€0</div></div>
+        <div class="stat-box" onclick="openMonthBalance()" style="cursor:pointer"><div class="l" id="d-expense-lbl">Despesas (mês) →</div><div class="v neg" id="d-expense">€0</div></div>
       </div>
 
       <div class="card">
@@ -341,6 +341,18 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       </div>
       <div class="chip-row" id="tx-filter-chips"></div>
       <div id="tx-list"></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Fechamento do Mês</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="tx-close-inc">€0</div></div>
+          <div class="stat-box"><div class="l">Total pago</div><div class="v neg" id="tx-close-exp">€0</div></div>
+        </div>
+        <div class="stat-box" style="margin-top:10px;cursor:pointer" onclick="openLeftoverSim()">
+          <div class="l">Balanço das operações → toca para simular os meses futuros</div>
+          <div class="v" id="tx-close-net">€0</div>
+        </div>
+      </div>
     </div>
 
     <!-- ══════════ FIXAS ══════════ -->
@@ -357,7 +369,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
           <div class="stat-box"><div class="l">Receitas</div><div class="v pos" id="bills-total-inc">€0</div></div>
         </div>
       </div>
-      <div class="section-hdr"><h3>Passadas</h3><span style="display:flex;gap:8px">
+      <div class="section-hdr"><h3>Futuras</h3><span style="display:flex;gap:8px">
         <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button>
         <button class="add-btn" onclick="openBillModal()">+ Novo</button></span></div>
       <div id="bills-sort-menu" class="card" style="display:none;padding:8px 12px">
@@ -365,10 +377,22 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
         <div class="row" style="margin-bottom:4px" onclick="setBillsSort('valueDesc')"><div class="row-info"><div class="row-name" id="bs-desc">⬇ Valor: do maior para o menor</div></div></div>
         <div class="row" style="margin-bottom:0" onclick="setBillsSort('valueAsc')"><div class="row-info"><div class="row-name" id="bs-asc">⬆ Valor: do menor para o maior</div></div></div>
       </div>
-      <div id="bills-past"></div>
-      <div class="section-hdr"><h3>Futuras</h3>
-        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button></div>
       <div id="bills-future"></div>
+      <div class="section-hdr"><h3>Passadas</h3>
+        <button class="add-btn" style="background:var(--g3);color:var(--txt2)" title="Organizar" onclick="toggleBillsSortMenu(event)">⇅</button></div>
+      <div id="bills-past"></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Fechamento do Mês</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="l">Total recebido</div><div class="v pos" id="bills-close-inc">€0</div></div>
+          <div class="stat-box"><div class="l">Total pago</div><div class="v neg" id="bills-close-exp">€0</div></div>
+        </div>
+        <div class="stat-box" style="margin-top:10px;cursor:pointer" onclick="openLeftoverSim()">
+          <div class="l">Sobra das operações do mês → toca para simular os meses futuros</div>
+          <div class="v" id="bills-close-net">€0</div>
+        </div>
+      </div>
 
     </div>
     <!-- ══════════ CARTÃO ══════════ -->
@@ -752,6 +776,12 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
     <div id="nwc-info" class="row-detail" style="min-height:18px;margin-bottom:4px"></div>
     <div id="nwc-chart" style="margin-bottom:14px"></div>
     <div id="nw-body"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="leftover-modal">
+  <div class="modal">
+    <h3>Sobra Mensal — Simulação <button class="modal-close" onclick="closeModal('leftover-modal')">✕</button></h3>
+    <div id="leftover-body"></div>
   </div>
 </div>
 <div class="modal-overlay" id="settings-modal">
@@ -1287,8 +1317,22 @@ function updateDash(){
   document.getElementById('d-networth').style.color = net >= 0 ? 'var(--txt)' : 'var(--red)';
   document.getElementById('d-invest').textContent = fmtEUR(invTotal);
   document.getElementById('d-ordem').textContent = fmtEUR(ordemTotal);
-  document.getElementById('d-income').textContent = fmtEUR(mIncome);
-  document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
+  if (dashOffset > 0) {
+    // receitas/despesas ESPERADAS no mês simulado (fixas configuradas)
+    const tM = addMonthsKey(curMonth, dashOffset);
+    const its = fixasItemsForMonth(tM).filter(it => it.kind !== 'transfer' && it.amount != null);
+    const incT = its.filter(i=>i.kind==='income').reduce((s,i)=>s+i.amount,0);
+    const expT = its.filter(i=>i.kind==='expense').reduce((s,i)=>s+i.amount,0);
+    document.getElementById('d-income-lbl').textContent = 'Receitas (' + fmtMonth(tM) + ') →';
+    document.getElementById('d-expense-lbl').textContent = 'Despesas (' + fmtMonth(tM) + ') →';
+    document.getElementById('d-income').textContent = fmtEUR(round2(incT));
+    document.getElementById('d-expense').textContent = fmtEUR(round2(expT));
+  } else {
+    document.getElementById('d-income-lbl').textContent = 'Receitas (mês) →';
+    document.getElementById('d-expense-lbl').textContent = 'Despesas (mês) →';
+    document.getElementById('d-income').textContent = fmtEUR(mIncome);
+    document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
+  }
 
   const cardsEl = document.getElementById('d-cards');
   const persCards = state.creditCards.filter(c => !c.professional);
@@ -1701,6 +1745,14 @@ function renderTx(){
   if (txSort === 'valueDesc') list.sort((a,b) => Math.abs(b.amount) - Math.abs(a.amount));
   else if (txSort === 'valueAsc') list.sort((a,b) => Math.abs(a.amount) - Math.abs(b.amount));
   else list.sort((a,b) => b.date.localeCompare(a.date));
+  const monthTxs = state.transactions.filter(t => monthKey(t.date) === M && t.kind !== 'transfer');
+  const incM = monthTxs.filter(t=>t.kind==='income').reduce((s,t)=>s+t.amount,0);
+  const expM = Math.abs(monthTxs.filter(t=>t.kind==='expense').reduce((s,t)=>s+t.amount,0));
+  document.getElementById('tx-close-inc').textContent = fmtEUR(round2(incM));
+  document.getElementById('tx-close-exp').textContent = fmtEUR(round2(expM));
+  const netEl = document.getElementById('tx-close-net');
+  netEl.textContent = (incM-expM >= 0 ? '+' : '') + fmtEUR(round2(incM - expM));
+  netEl.style.color = incM - expM >= 0 ? 'var(--good)' : 'var(--red)';
   const el = document.getElementById('tx-list');
   el.innerHTML = list.length ? list.map(txRow).join('')
     : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações neste mês' + (txFilter!=='Todas' ? ' nesta categoria' : '') + '</p></div>';
@@ -1896,6 +1948,11 @@ function renderBills(){
   const inc = items.filter(i=>i.kind==='income').reduce((a,i)=>a+(i.amount||0),0);
   document.getElementById('bills-total-exp').textContent = fmtEUR(exp);
   document.getElementById('bills-total-inc').textContent = fmtEUR(inc);
+  document.getElementById('bills-close-inc').textContent = fmtEUR(inc);
+  document.getElementById('bills-close-exp').textContent = fmtEUR(exp);
+  const netEl = document.getElementById('bills-close-net');
+  netEl.textContent = (inc-exp >= 0 ? '+' : '') + fmtEUR(round2(inc - exp));
+  netEl.style.color = inc - exp >= 0 ? 'var(--good)' : 'var(--red)';
   const today = todayKey();
   const past = [], future = [];
   items.forEach(it => {
@@ -2035,8 +2092,39 @@ function saveBill(){
 }
 function deleteBill(){
   const id = parseInt(document.getElementById('bill-id').value);
+  // remover também as transações criadas pelas liquidações desta fixa
+  Object.keys(state.billSettlements||{}).forEach(k => {
+    if (!k.startsWith('bill:' + id + '|')) return;
+    const t = state.transactions.find(x => x.id === state.billSettlements[k].txId);
+    if (t) {
+      if (t.kind === 'transfer') { if (t.applied) applyTransfer(t, -1); }
+      else if (t.applied) applyTxBalance(t, -1);
+      state.transactions = state.transactions.filter(x => x.id !== t.id);
+    }
+    delete state.billSettlements[k];
+  });
   state.recurringBills = state.recurringBills.filter(b=>b.id!==id);
-  closeModal('bill-modal'); save(); showToast('🗑️ Eliminada');
+  closeModal('bill-modal'); save(); showToast('🗑️ Eliminada (e transações associadas)');
+}
+// simulação da sobra mensal (fixas configuradas) nos próximos meses
+function openLeftoverSim(){
+  let m = todayKey().slice(0,7), cum = 0;
+  const rows = [];
+  for (let i = 0; i < 12; i++) {
+    if (i > 0) m = nextMonth(m);
+    const its = fixasItemsForMonth(m).filter(it => it.kind !== 'transfer' && it.amount != null);
+    const net = round2(its.reduce((s,it) => s + (it.kind === 'income' ? it.amount : -it.amount), 0));
+    cum = round2(cum + net);
+    rows.push({ m, net, cum });
+  }
+  document.getElementById('leftover-body').innerHTML =
+    '<div class="note-box" style="margin-bottom:12px">Sobra prevista por mês (receitas fixas − despesas fixas configuradas, respeitando os prazos) e acumulado.</div>' +
+    '<div class="timeline">' + rows.map(r => `
+    <div class="tl-item"><div class="tl-dot" style="background:${r.net>=0?'var(--good)':'var(--red)'}"></div>
+      <div class="tl-info"><div class="t">${fmtMonth(r.m)}</div><div class="s">acumulado ${fmtEUR(r.cum)}</div></div>
+      <div class="tl-val" style="color:${r.net>=0?'var(--good)':'var(--red)'}">${r.net>=0?'+':''}${fmtEUR(r.net)}</div>
+    </div>`).join('') + '</div>';
+  document.getElementById('leftover-modal').classList.add('open');
 }
 function registerBillPayment(){
   const id = parseInt(document.getElementById('bill-id').value);

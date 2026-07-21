@@ -95,6 +95,11 @@ function renderBills(){
   const inc = items.filter(i=>i.kind==='income').reduce((a,i)=>a+(i.amount||0),0);
   document.getElementById('bills-total-exp').textContent = fmtEUR(exp);
   document.getElementById('bills-total-inc').textContent = fmtEUR(inc);
+  document.getElementById('bills-close-inc').textContent = fmtEUR(inc);
+  document.getElementById('bills-close-exp').textContent = fmtEUR(exp);
+  const netEl = document.getElementById('bills-close-net');
+  netEl.textContent = (inc-exp >= 0 ? '+' : '') + fmtEUR(round2(inc - exp));
+  netEl.style.color = inc - exp >= 0 ? 'var(--good)' : 'var(--red)';
   const today = todayKey();
   const past = [], future = [];
   items.forEach(it => {
@@ -234,8 +239,39 @@ function saveBill(){
 }
 function deleteBill(){
   const id = parseInt(document.getElementById('bill-id').value);
+  // remover também as transações criadas pelas liquidações desta fixa
+  Object.keys(state.billSettlements||{}).forEach(k => {
+    if (!k.startsWith('bill:' + id + '|')) return;
+    const t = state.transactions.find(x => x.id === state.billSettlements[k].txId);
+    if (t) {
+      if (t.kind === 'transfer') { if (t.applied) applyTransfer(t, -1); }
+      else if (t.applied) applyTxBalance(t, -1);
+      state.transactions = state.transactions.filter(x => x.id !== t.id);
+    }
+    delete state.billSettlements[k];
+  });
   state.recurringBills = state.recurringBills.filter(b=>b.id!==id);
-  closeModal('bill-modal'); save(); showToast('🗑️ Eliminada');
+  closeModal('bill-modal'); save(); showToast('🗑️ Eliminada (e transações associadas)');
+}
+// simulação da sobra mensal (fixas configuradas) nos próximos meses
+function openLeftoverSim(){
+  let m = todayKey().slice(0,7), cum = 0;
+  const rows = [];
+  for (let i = 0; i < 12; i++) {
+    if (i > 0) m = nextMonth(m);
+    const its = fixasItemsForMonth(m).filter(it => it.kind !== 'transfer' && it.amount != null);
+    const net = round2(its.reduce((s,it) => s + (it.kind === 'income' ? it.amount : -it.amount), 0));
+    cum = round2(cum + net);
+    rows.push({ m, net, cum });
+  }
+  document.getElementById('leftover-body').innerHTML =
+    '<div class="note-box" style="margin-bottom:12px">Sobra prevista por mês (receitas fixas − despesas fixas configuradas, respeitando os prazos) e acumulado.</div>' +
+    '<div class="timeline">' + rows.map(r => `
+    <div class="tl-item"><div class="tl-dot" style="background:${r.net>=0?'var(--good)':'var(--red)'}"></div>
+      <div class="tl-info"><div class="t">${fmtMonth(r.m)}</div><div class="s">acumulado ${fmtEUR(r.cum)}</div></div>
+      <div class="tl-val" style="color:${r.net>=0?'var(--good)':'var(--red)'}">${r.net>=0?'+':''}${fmtEUR(r.net)}</div>
+    </div>`).join('') + '</div>';
+  document.getElementById('leftover-modal').classList.add('open');
 }
 function registerBillPayment(){
   const id = parseInt(document.getElementById('bill-id').value);

@@ -44,6 +44,14 @@ function renderTx(){
   if (txSort === 'valueDesc') list.sort((a,b) => Math.abs(b.amount) - Math.abs(a.amount));
   else if (txSort === 'valueAsc') list.sort((a,b) => Math.abs(a.amount) - Math.abs(b.amount));
   else list.sort((a,b) => b.date.localeCompare(a.date));
+  const monthTxs = state.transactions.filter(t => monthKey(t.date) === M && t.kind !== 'transfer');
+  const incM = monthTxs.filter(t=>t.kind==='income').reduce((s,t)=>s+t.amount,0);
+  const expM = Math.abs(monthTxs.filter(t=>t.kind==='expense').reduce((s,t)=>s+t.amount,0));
+  document.getElementById('tx-close-inc').textContent = fmtEUR(round2(incM));
+  document.getElementById('tx-close-exp').textContent = fmtEUR(round2(expM));
+  const netEl = document.getElementById('tx-close-net');
+  netEl.textContent = (incM-expM >= 0 ? '+' : '') + fmtEUR(round2(incM - expM));
+  netEl.style.color = incM - expM >= 0 ? 'var(--good)' : 'var(--red)';
   const el = document.getElementById('tx-list');
   el.innerHTML = list.length ? list.map(txRow).join('')
     : '<div class="empty-state"><div class="icon">📋</div><p>Sem transações neste mês' + (txFilter!=='Todas' ? ' nesta categoria' : '') + '</p></div>';

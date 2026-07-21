@@ -58,8 +58,22 @@ function updateDash(){
   document.getElementById('d-networth').style.color = net >= 0 ? 'var(--txt)' : 'var(--red)';
   document.getElementById('d-invest').textContent = fmtEUR(invTotal);
   document.getElementById('d-ordem').textContent = fmtEUR(ordemTotal);
-  document.getElementById('d-income').textContent = fmtEUR(mIncome);
-  document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
+  if (dashOffset > 0) {
+    // receitas/despesas ESPERADAS no mês simulado (fixas configuradas)
+    const tM = addMonthsKey(curMonth, dashOffset);
+    const its = fixasItemsForMonth(tM).filter(it => it.kind !== 'transfer' && it.amount != null);
+    const incT = its.filter(i=>i.kind==='income').reduce((s,i)=>s+i.amount,0);
+    const expT = its.filter(i=>i.kind==='expense').reduce((s,i)=>s+i.amount,0);
+    document.getElementById('d-income-lbl').textContent = 'Receitas (' + fmtMonth(tM) + ') →';
+    document.getElementById('d-expense-lbl').textContent = 'Despesas (' + fmtMonth(tM) + ') →';
+    document.getElementById('d-income').textContent = fmtEUR(round2(incT));
+    document.getElementById('d-expense').textContent = fmtEUR(round2(expT));
+  } else {
+    document.getElementById('d-income-lbl').textContent = 'Receitas (mês) →';
+    document.getElementById('d-expense-lbl').textContent = 'Despesas (mês) →';
+    document.getElementById('d-income').textContent = fmtEUR(mIncome);
+    document.getElementById('d-expense').textContent = fmtEUR(Math.abs(mExpense));
+  }
 
   const cardsEl = document.getElementById('d-cards');
   const persCards = state.creditCards.filter(c => !c.professional);
