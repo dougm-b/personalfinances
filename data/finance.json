@@ -17,7 +17,8 @@
       "id": 3,
       "name": "Revolut",
       "type": "À ordem",
-      "balance": 72.91
+      "balance": 36.59,
+      "updatedAt": 1784623048129
     },
     {
       "id": 6,
