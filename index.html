@@ -2000,6 +2000,27 @@ function reconcileSettlements(){
       }
     });
   });
+  // limpa liquidações órfãs: fixa apagada ou transação já removida
+  Object.keys(state.billSettlements).forEach(k => {
+    const s = state.billSettlements[k];
+    const txExists = state.transactions.some(t => t.id === s.txId);
+    if (!txExists) { delete state.billSettlements[k]; return; }
+    const [key] = k.split('|');
+    if (key.startsWith('bill:')) {
+      const id = parseInt(key.split(':')[1]);
+      if (!state.recurringBills.some(b => b.id === id)) {
+        // a fixa foi apagada mas ficou a liquidação (e a transação órfã): remover ambas
+        const s2 = state.billSettlements[k];
+        const t = state.transactions.find(x => x.id === s2.txId);
+        if (t) {
+          if (t.kind === 'transfer') { if (t.applied) applyTransfer(t, -1); }
+          else if (t.applied) applyTxBalance(t, -1);
+          state.transactions = state.transactions.filter(x => x.id !== t.id);
+        }
+        delete state.billSettlements[k];
+      }
+    }
+  });
 }
 // checkbox "já liquidado": vai para Transações mas NÃO mexe no saldo da conta
 // (serve para indicar que o saldo da conta já reflete este pagamento)
