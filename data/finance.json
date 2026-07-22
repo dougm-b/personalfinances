@@ -17,8 +17,8 @@
       "id": 3,
       "name": "Revolut",
       "type": "À ordem",
-      "balance": 36.59,
-      "updatedAt": 1784623048129
+      "balance": 71.01,
+      "updatedAt": 1784729266449
     },
     {
       "id": 6,
@@ -180,17 +180,6 @@
       "accountId": 1,
       "applied": false,
       "ts": 1784622173083
-    },
-    {
-      "id": 18,
-      "desc": "Despesas Gerais do Mês",
-      "kind": "expense",
-      "amount": -300,
-      "date": "2026-07-01",
-      "category": "Utilidades",
-      "accountId": 1,
-      "applied": false,
-      "ts": 1784622179772
     },
     {
       "id": 19,
@@ -486,8 +475,7 @@
     "loan": {
       "credor": "Deny e Mauricio",
       "total": 30757.19,
-      "baseRemaining": 23557.19,
-      "baseMonth": "2026-07",
+      "extraPaid": 600,
       "paymentPlans": [
         {
           "id": 1,
@@ -635,10 +623,6 @@
     "bill:12|2026-07": {
       "txId": 17,
       "when": 1784622173083
-    },
-    "bill:14|2026-07": {
-      "txId": 18,
-      "when": 1784622179772
     },
     "bill:15|2026-07": {
       "txId": 19,
