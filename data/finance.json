@@ -376,7 +376,7 @@
       "category": "Utilidades",
       "amount": 300,
       "kind": "expense",
-      "accountId": 1,
+      "accountId": 3,
       "fromRef": "acc:1",
       "toRef": "acc:1",
       "from": null,
