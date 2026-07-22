@@ -355,9 +355,22 @@
       "toRef": "acc:3",
       "from": "2026-08",
       "to": "2027-08"
+    },
+    {
+      "id": 17,
+      "name": "Despesas Mensais",
+      "day": 15,
+      "category": "Utilidades",
+      "amount": null,
+      "kind": "expense",
+      "accountId": 3,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 17,
+  "nextBillId": 18,
   "creditCards": [
     {
       "id": 1,
