@@ -368,9 +368,22 @@
       "toRef": "acc:1",
       "from": null,
       "to": null
+    },
+    {
+      "id": 18,
+      "name": "Despesas Mensais",
+      "day": 15,
+      "category": "Utilidades",
+      "amount": 300,
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 18,
+  "nextBillId": 19,
   "creditCards": [
     {
       "id": 1,
