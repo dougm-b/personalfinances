@@ -368,9 +368,22 @@
       "toRef": "acc:1",
       "from": null,
       "to": null
+    },
+    {
+      "id": 19,
+      "name": "Subsídio Natal",
+      "day": 1,
+      "category": "Salário",
+      "amount": 782,
+      "kind": "income",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": "2026-12",
+      "to": "2026-12"
     }
   ],
-  "nextBillId": 19,
+  "nextBillId": 20,
   "creditCards": [
     {
       "id": 1,
