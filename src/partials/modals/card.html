@@ -1,6 +1,6 @@
 <div class="modal-overlay" id="card-modal">
   <div class="modal">
-    <h3><span id="card-modal-title">Novo Cartão</span><button class="modal-close" onclick="closeModal('card-modal')">✕</button></h3>
+    <h3><span id="card-modal-title">Novo Cartão</span><span class="hdr-actions"><button class="modal-save" onclick="saveCard()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('card-modal')">✕</button></span></h3>
     <input type="hidden" id="card-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="card-name" placeholder="Ex: WiZink"/></div>
     <div class="form-row">
@@ -16,7 +16,6 @@
       Cartão profissional (empresa — fora das Fixas e do balanço pessoal)</label>
     <div class="form-group"><label class="form-label">Ajuste de Saldo Disponível (€) — opcional</label><input class="form-input" id="card-adjavail" type="number" step="0.01" placeholder="Insere o disponível real que o banco mostra"/></div>
     <div class="note-box" style="margin-bottom:12px">Ao preencher, o sistema calcula a diferença face ao disponível esperado (limite − prestações em falta − avulsas anteriores) e regista automaticamente uma compra avulsa ou um pagamento avulso deste ciclo, que fica agregado para o futuro.</div>
-    <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
   </div>
 </div>
@@ -24,7 +23,7 @@
 
 <div class="modal-overlay" id="financed-modal">
   <div class="modal">
-    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
+    <h3><span id="financed-modal-title">Nova Compra Financiada</span><span class="hdr-actions"><button class="modal-save" onclick="saveFinancedItem()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></span></h3>
     <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
     <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
@@ -34,7 +33,6 @@
       <div class="form-group"><label class="form-label">1º mês da prestação</label><input class="form-input" id="fin-start" type="month"/></div>
       <div class="form-group"><label class="form-label">Nº de prestações</label><input class="form-input" id="fin-months" type="number" min="1" placeholder="ex: 24"/></div>
     </div>
-    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
     <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
   </div>
 </div>
@@ -53,10 +51,9 @@
 
 <div class="modal-overlay" id="card-adj-modal">
   <div class="modal">
-    <h3><span id="ca-title">Movimento</span><button class="modal-close" onclick="closeModal('card-adj-modal')">✕</button></h3>
+    <h3><span id="ca-title">Movimento</span><span class="hdr-actions"><button class="modal-save" onclick="saveCardAdj()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('card-adj-modal')">✕</button></span></h3>
     <input type="hidden" id="ca-card-id"/><input type="hidden" id="ca-sign"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="ca-desc" placeholder="Ex: compra supermercado / pagamento da fatura"/></div>
     <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="ca-amount" type="number" step="0.01" min="0"/></div>
-    <button class="btn-primary" onclick="saveCardAdj()">Guardar</button>
   </div>
 </div>

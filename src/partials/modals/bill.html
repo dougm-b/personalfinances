@@ -1,6 +1,6 @@
 <div class="modal-overlay" id="bill-modal">
   <div class="modal">
-    <h3><span id="bill-modal-title">Nova Despesa Fixa</span><button class="modal-close" onclick="closeModal('bill-modal')">✕</button></h3>
+    <h3><span id="bill-modal-title">Nova Despesa Fixa</span><span class="hdr-actions"><button class="modal-save" onclick="saveBill()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('bill-modal')">✕</button></span></h3>
     <input type="hidden" id="bill-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="bill-name" placeholder="Ex: Vodafone"/></div>
     <div class="form-row">
@@ -26,7 +26,6 @@
       <div class="form-group"><label class="form-label">Desde (mês, opcional)</label><input class="form-input" id="bill-from" type="month"/></div>
       <div class="form-group"><label class="form-label">Até (mês, opcional)</label><input class="form-input" id="bill-to" type="month"/></div>
     </div>
-    <button class="btn-primary" onclick="saveBill()">Guardar</button>
     <button class="btn-secondary" onclick="registerBillPayment()">Registar pagamento este mês →</button>
     <button class="btn-danger" id="bill-delete-btn" onclick="deleteBill()" style="display:none">Eliminar</button>
   </div>
@@ -35,7 +34,7 @@
 
 <div class="modal-overlay" id="planned-modal">
   <div class="modal">
-    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></h3>
+    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><span class="hdr-actions"><button class="modal-save" onclick="savePlanned()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></span></h3>
     <input type="hidden" id="pl-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="pl-desc" placeholder="Ex: Ordenado"/></div>
     <div class="form-row">
@@ -49,7 +48,6 @@
       <div class="form-group"><label class="form-label">Data de pagamento</label><input class="form-input" id="pl-due" type="date"/></div>
     </div>
     <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="pl-account"></select></div>
-    <button class="btn-primary" onclick="savePlanned()">Guardar</button>
     <button class="btn-secondary" id="pl-confirm-btn" onclick="confirmPlanned()" style="display:none">✓ Confirmar como efetuado</button>
     <button class="btn-danger" id="pl-delete-btn" onclick="deletePlanned()" style="display:none">Eliminar</button>
   </div>

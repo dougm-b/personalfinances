@@ -139,6 +139,9 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 .modal h3{font-weight:700;font-size:17px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
 .modal-close{background:var(--g3);border:none;color:var(--txt2);border-radius:50%;width:30px;height:30px;
   font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-save{background:var(--good);border:none;color:#04140a;border-radius:50%;width:34px;height:34px;
+  font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal h3 .hdr-actions{display:flex;gap:8px;align-items:center}
 .form-group{margin-bottom:14px}
 .form-label{font-size:12px;color:var(--txt3);margin-bottom:6px;display:block;font-weight:500}
 .form-input,.form-select{width:100%;background:var(--g2);border:1px solid var(--g3);border-radius:12px;
@@ -488,7 +491,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="account-modal">
   <div class="modal">
-    <h3><span id="account-modal-title">Nova Conta</span><button class="modal-close" onclick="closeModal('account-modal')">✕</button></h3>
+    <h3><span id="account-modal-title">Nova Conta</span><span class="hdr-actions"><button class="modal-save" onclick="saveAccount()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('account-modal')">✕</button></span></h3>
     <input type="hidden" id="acc-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="acc-name" placeholder="Millennium bcp"/></div>
     <div class="form-row">
@@ -499,7 +502,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       </div>
       <div class="form-group"><label class="form-label">Saldo (€)</label><input class="form-input" id="acc-balance" type="number" step="0.01" placeholder="0.00"/></div>
     </div>
-    <button class="btn-primary" onclick="saveAccount()">Guardar</button>
     <button class="btn-danger" id="acc-delete-btn" onclick="deleteAccount()" style="display:none">Eliminar conta</button>
   </div>
 </div>
@@ -514,7 +516,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="tx-modal">
   <div class="modal">
-    <h3><span id="tx-modal-title">Nova Transação</span><button class="modal-close" onclick="closeModal('tx-modal')">✕</button></h3>
+    <h3><span id="tx-modal-title">Nova Transação</span><span class="hdr-actions"><button class="modal-save" onclick="saveTx()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('tx-modal')">✕</button></span></h3>
     <input type="hidden" id="tx-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="tx-desc" placeholder="Ex: Salário Randstad"/></div>
     <div class="form-row">
@@ -532,14 +534,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">De (origem)</label><select class="form-select" id="tx-from"></select></div>
       <div class="form-group"><label class="form-label">Para (destino)</label><select class="form-select" id="tx-to"></select></div>
     </div>
-    <button class="btn-primary" onclick="saveTx()">Guardar</button>
     <button class="btn-danger" id="tx-delete-btn" onclick="deleteTx()" style="display:none">Eliminar transação</button>
   </div>
 </div>
 
 <div class="modal-overlay" id="bill-modal">
   <div class="modal">
-    <h3><span id="bill-modal-title">Nova Despesa Fixa</span><button class="modal-close" onclick="closeModal('bill-modal')">✕</button></h3>
+    <h3><span id="bill-modal-title">Nova Despesa Fixa</span><span class="hdr-actions"><button class="modal-save" onclick="saveBill()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('bill-modal')">✕</button></span></h3>
     <input type="hidden" id="bill-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="bill-name" placeholder="Ex: Vodafone"/></div>
     <div class="form-row">
@@ -565,7 +566,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">Desde (mês, opcional)</label><input class="form-input" id="bill-from" type="month"/></div>
       <div class="form-group"><label class="form-label">Até (mês, opcional)</label><input class="form-input" id="bill-to" type="month"/></div>
     </div>
-    <button class="btn-primary" onclick="saveBill()">Guardar</button>
     <button class="btn-secondary" onclick="registerBillPayment()">Registar pagamento este mês →</button>
     <button class="btn-danger" id="bill-delete-btn" onclick="deleteBill()" style="display:none">Eliminar</button>
   </div>
@@ -574,7 +574,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="planned-modal">
   <div class="modal">
-    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></h3>
+    <h3><span id="planned-modal-title">Novo Movimento Previsto</span><span class="hdr-actions"><button class="modal-save" onclick="savePlanned()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('planned-modal')">✕</button></span></h3>
     <input type="hidden" id="pl-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="pl-desc" placeholder="Ex: Ordenado"/></div>
     <div class="form-row">
@@ -588,7 +588,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">Data de pagamento</label><input class="form-input" id="pl-due" type="date"/></div>
     </div>
     <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="pl-account"></select></div>
-    <button class="btn-primary" onclick="savePlanned()">Guardar</button>
     <button class="btn-secondary" id="pl-confirm-btn" onclick="confirmPlanned()" style="display:none">✓ Confirmar como efetuado</button>
     <button class="btn-danger" id="pl-delete-btn" onclick="deletePlanned()" style="display:none">Eliminar</button>
   </div>
@@ -596,7 +595,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="card-modal">
   <div class="modal">
-    <h3><span id="card-modal-title">Novo Cartão</span><button class="modal-close" onclick="closeModal('card-modal')">✕</button></h3>
+    <h3><span id="card-modal-title">Novo Cartão</span><span class="hdr-actions"><button class="modal-save" onclick="saveCard()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('card-modal')">✕</button></span></h3>
     <input type="hidden" id="card-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="card-name" placeholder="Ex: WiZink"/></div>
     <div class="form-row">
@@ -612,7 +611,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       Cartão profissional (empresa — fora das Fixas e do balanço pessoal)</label>
     <div class="form-group"><label class="form-label">Ajuste de Saldo Disponível (€) — opcional</label><input class="form-input" id="card-adjavail" type="number" step="0.01" placeholder="Insere o disponível real que o banco mostra"/></div>
     <div class="note-box" style="margin-bottom:12px">Ao preencher, o sistema calcula a diferença face ao disponível esperado (limite − prestações em falta − avulsas anteriores) e regista automaticamente uma compra avulsa ou um pagamento avulso deste ciclo, que fica agregado para o futuro.</div>
-    <button class="btn-primary" onclick="saveCard()">Guardar</button>
     <button class="btn-danger" id="card-delete-btn" onclick="deleteCard()" style="display:none">Eliminar cartão</button>
   </div>
 </div>
@@ -620,7 +618,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="financed-modal">
   <div class="modal">
-    <h3><span id="financed-modal-title">Nova Compra Financiada</span><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></h3>
+    <h3><span id="financed-modal-title">Nova Compra Financiada</span><span class="hdr-actions"><button class="modal-save" onclick="saveFinancedItem()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('financed-modal')">✕</button></span></h3>
     <input type="hidden" id="fin-card-id"/><input type="hidden" id="fin-id"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fin-desc" placeholder="Ex: iPhone (crédito)"/></div>
     <div class="form-group"><label class="form-label">Valor total (€)</label><input class="form-input" id="fin-total" type="number" step="0.01"/></div>
@@ -630,7 +628,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">1º mês da prestação</label><input class="form-input" id="fin-start" type="month"/></div>
       <div class="form-group"><label class="form-label">Nº de prestações</label><input class="form-input" id="fin-months" type="number" min="1" placeholder="ex: 24"/></div>
     </div>
-    <button class="btn-primary" onclick="saveFinancedItem()">Guardar</button>
     <button class="btn-danger" id="fin-delete-btn" onclick="deleteFinancedItem()" style="display:none">Eliminar</button>
   </div>
 </div>
@@ -649,31 +646,28 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="card-adj-modal">
   <div class="modal">
-    <h3><span id="ca-title">Movimento</span><button class="modal-close" onclick="closeModal('card-adj-modal')">✕</button></h3>
+    <h3><span id="ca-title">Movimento</span><span class="hdr-actions"><button class="modal-save" onclick="saveCardAdj()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('card-adj-modal')">✕</button></span></h3>
     <input type="hidden" id="ca-card-id"/><input type="hidden" id="ca-sign"/>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="ca-desc" placeholder="Ex: compra supermercado / pagamento da fatura"/></div>
     <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" id="ca-amount" type="number" step="0.01" min="0"/></div>
-    <button class="btn-primary" onclick="saveCardAdj()">Guardar</button>
   </div>
 </div>
 <div class="modal-overlay" id="invest-modal">
   <div class="modal">
-    <h3>Novo Movimento <button class="modal-close" onclick="closeModal('invest-modal')">✕</button></h3>
+    <h3>Novo Movimento <span class="hdr-actions"><button class="modal-save" onclick="saveInvestContribution()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('invest-modal')">✕</button></span></h3>
     <input type="hidden" id="invest-id"/>
     <div class="form-group"><label class="form-label">Valor (€) — negativo para levantamento</label><input class="form-input" id="invest-amount" type="number" step="0.01"/></div>
     <div class="form-group"><label class="form-label">Conta de origem/destino</label><select class="form-select" id="invest-account"></select></div>
     <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="invest-note" placeholder="Ex: reforço mensal"/></div>
-    <button class="btn-primary" onclick="saveInvestContribution()">Adicionar</button>
     <div class="note-box">Cria uma transferência em Transações e move o valor entre a conta bancária e o investimento.</div>
   </div>
 </div>
 
 <div class="modal-overlay" id="invest-fix-modal">
   <div class="modal">
-    <h3>Corrigir Valor Atual <button class="modal-close" onclick="closeModal('invest-fix-modal')">✕</button></h3>
+    <h3>Corrigir Valor Atual <span class="hdr-actions"><button class="modal-save" onclick="saveInvestFix()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('invest-fix-modal')">✕</button></span></h3>
     <div class="form-group"><label class="form-label">Valor atual real (€)</label><input class="form-input" id="invfix-value" type="number" step="0.01"/></div>
     <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="invfix-note" placeholder="Ex: valor real na corretora / valorização"/></div>
-    <button class="btn-primary" onclick="saveInvestFix()">Guardar</button>
     <div class="note-box">Ajusta apenas o valor deste investimento (ex: valorização, ou correção de um valor de referência desatualizado) — não mexe em nenhuma conta bancária nem cria transação. Para mover dinheiro de/para uma conta usa "+ Movimento".</div>
   </div>
 </div>
@@ -681,14 +675,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="goal-modal">
   <div class="modal">
-    <h3><span id="goal-modal-title">Nova Meta</span><button class="modal-close" onclick="closeModal('goal-modal')">✕</button></h3>
+    <h3><span id="goal-modal-title">Nova Meta</span><span class="hdr-actions"><button class="modal-save" onclick="saveGoal()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('goal-modal')">✕</button></span></h3>
     <input type="hidden" id="goal-id"/>
     <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="goal-name" placeholder="Ex: Fundo de Emergência"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Objetivo (€)</label><input class="form-input" id="goal-target" type="number" step="0.01"/></div>
       <div class="form-group"><label class="form-label">Atual (€)</label><input class="form-input" id="goal-current" type="number" step="0.01"/></div>
     </div>
-    <button class="btn-primary" onclick="saveGoal()">Guardar</button>
     <button class="btn-danger" id="goal-delete-btn" onclick="deleteGoal()" style="display:none">Eliminar meta</button>
   </div>
 </div>
@@ -702,20 +695,18 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 </div>
 <div class="modal-overlay" id="house-modal">
   <div class="modal">
-    <h3>Saldo em Dívida Atual <button class="modal-close" onclick="closeModal('house-modal')">✕</button></h3>
+    <h3>Saldo em Dívida Atual <span class="hdr-actions"><button class="modal-save" onclick="saveHouseRemaining()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('house-modal')">✕</button></span></h3>
     <div class="form-group"><label class="form-label">Saldo em dívida a Deny e Mauricio (€)</label><input class="form-input" id="house-remaining" type="number" step="0.01"/></div>
-    <button class="btn-primary" onclick="saveHouseRemaining()">Guardar</button>
   </div>
 </div>
 
 
 <div class="modal-overlay" id="loan-pay-modal">
   <div class="modal">
-    <h3>Registar Pagamento do Empréstimo <button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></h3>
+    <h3>Registar Pagamento do Empréstimo <span class="hdr-actions"><button class="modal-save" onclick="saveLoanPayment()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('loan-pay-modal')">✕</button></span></h3>
     <div class="form-group"><label class="form-label">Valor pago (€)</label><input class="form-input" id="loan-pay-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
     <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="loan-pay-date" type="date"/></div>
     <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="loan-pay-account"></select></div>
-    <button class="btn-primary" onclick="saveLoanPayment()">Registar pagamento</button>
     <div class="note-box">Abate o valor no saldo em dívida, cria a transação (categoria Casa) e debita a conta escolhida.</div>
   </div>
 </div>
@@ -723,7 +714,7 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="plan-modal">
   <div class="modal">
-    <h3><span id="plan-modal-title">Novo Débito Mensal</span><button class="modal-close" onclick="closeModal('plan-modal')">✕</button></h3>
+    <h3><span id="plan-modal-title">Novo Débito Mensal</span><span class="hdr-actions"><button class="modal-save" onclick="savePlan()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('plan-modal')">✕</button></span></h3>
     <input type="hidden" id="plan-id"/>
     <div class="form-group"><label class="form-label">Valor mensal (€)</label><input class="form-input" id="plan-amount" type="number" step="0.01" placeholder="Ex: 300"/></div>
     <div class="form-row">
@@ -731,7 +722,6 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
       <div class="form-group"><label class="form-label">Até (mês)</label><input class="form-input" id="plan-to" type="month"/></div>
     </div>
     <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="plan-account"></select></div>
-    <button class="btn-primary" onclick="savePlan()">Guardar</button>
     <div class="note-box">Em cada mês do período, é criada automaticamente a transação do pagamento e o valor é debitado desta conta.</div>
     <button class="btn-danger" id="plan-delete-btn" onclick="deletePlan()" style="display:none">Eliminar</button>
   </div>
@@ -740,14 +730,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="room-modal">
   <div class="modal">
-    <h3><span id="room-modal-title">Novo Quarto</span><button class="modal-close" onclick="closeModal('room-modal')">✕</button></h3>
+    <h3><span id="room-modal-title">Novo Quarto</span><span class="hdr-actions"><button class="modal-save" onclick="saveRoom()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('room-modal')">✕</button></span></h3>
     <input type="hidden" id="room-id"/>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="room-name" placeholder="Quarto 1"/></div>
       <div class="form-group"><label class="form-label">Renda mensal (€)</label><input class="form-input" id="room-rent" type="number" step="0.01"/></div>
     </div>
     <div id="room-adjustments"></div>
-    <button class="btn-primary" onclick="saveRoom()">Guardar</button>
     <button class="btn-secondary" id="room-add-adj" onclick="openRoomAdjModal()" style="display:none">± Ajuste pontual num mês</button>
     <button class="btn-danger" id="room-delete-btn" onclick="deleteRoom()" style="display:none">Eliminar quarto</button>
   </div>
@@ -756,14 +745,13 @@ html,body{height:100%;overflow:hidden;background:var(--g0);color:var(--txt);font
 
 <div class="modal-overlay" id="room-adj-modal">
   <div class="modal">
-    <h3><span id="adj-modal-title">Ajuste Pontual</span><button class="modal-close" onclick="closeModal('room-adj-modal')">✕</button></h3>
+    <h3><span id="adj-modal-title">Ajuste Pontual</span><span class="hdr-actions"><button class="modal-save" onclick="saveRoomAdj()" title="Guardar">✔</button><button class="modal-close" onclick="closeModal('room-adj-modal')">✕</button></span></h3>
     <input type="hidden" id="adj-room-id"/><input type="hidden" id="adj-id"/>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Mês</label><input class="form-input" id="adj-month" type="month"/></div>
       <div class="form-group"><label class="form-label">Valor (€, pode ser negativo)</label><input class="form-input" id="adj-amount" type="number" step="0.01" placeholder="Ex: 320 ou -320"/></div>
     </div>
     <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="adj-note" placeholder="Ex: pagou 2 meses juntos / não pagou este mês"/></div>
-    <button class="btn-primary" onclick="saveRoomAdj()">Guardar</button>
     <button class="btn-danger" id="adj-delete-btn" onclick="deleteRoomAdj()" style="display:none">Eliminar ajuste</button>
   </div>
 </div>
