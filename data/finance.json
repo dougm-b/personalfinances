@@ -418,9 +418,22 @@
       "toRef": "acc:1",
       "from": "2026-08",
       "to": "2026-08"
+    },
+    {
+      "id": 22,
+      "name": "Despesas Viagem",
+      "day": 11,
+      "category": "Lazer",
+      "amount": 300,
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": "2026-09",
+      "to": "2026-09"
     }
   ],
-  "nextBillId": 22,
+  "nextBillId": 23,
   "creditCards": [
     {
       "id": 1,
