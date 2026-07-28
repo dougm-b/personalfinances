@@ -26,9 +26,16 @@
       "type": "Profissional",
       "balance": 98.01,
       "updatedAt": 1784642482565
+    },
+    {
+      "id": 7,
+      "name": "My Edenred",
+      "type": "À ordem",
+      "balance": 0.18,
+      "updatedAt": 1785228136530
     }
   ],
-  "nextAccountId": 7,
+  "nextAccountId": 8,
   "transactions": [
     {
       "id": 2,
