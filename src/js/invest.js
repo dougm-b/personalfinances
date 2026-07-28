@@ -5,15 +5,37 @@ let activeInvestId = null;
 function renderInvest(){
   document.getElementById('invest-total').textContent = fmtEUR(totalInvestments());
   const el = document.getElementById('invest-list');
-  el.innerHTML = state.investments.map(inv => `<div class="card" onclick="openInvestDetail('${inv.id}')" style="cursor:pointer">
+  el.innerHTML = state.investments.map(inv => {
+    // reforços mensais recorrentes que têm este investimento como destino
+    const ref = state.recurringBills.filter(b => b.kind === 'transfer' && b.toRef === 'inv:' + inv.id);
+    const refHtml = ref.map(b => `<div class="row" onclick="event.stopPropagation();openBillModal(${b.id})">
+        <div class="row-emoji">🔁</div>
+        <div class="row-info"><div class="row-name">Reforço ${fmtEUR(b.amount)}/mês</div>
+          <div class="row-detail">dia ${b.day} · de ${esc((getEntity(b.fromRef)||{}).name||'?')}${b.to ? ' · até ' + fmtMonth(b.to) : ''}</div></div>
+        <div class="row-val" style="color:var(--blue)">${fmtEUR(b.amount)} ⇄</div>
+      </div>`).join('');
+    return `<div class="card" onclick="openInvestDetail('${inv.id}')" style="cursor:pointer">
       <div class="card-title">${esc(inv.name)}
         <span style="display:flex;gap:6px">
           <button class="add-btn" style="background:var(--g3);color:var(--txt2)" onclick="event.stopPropagation();openInvestFixModal('${inv.id}')">✎ Corrigir valor</button>
           <button class="add-btn" onclick="event.stopPropagation();openInvestModal('${inv.id}')">+ Movimento</button>
         </span></div>
       <div class="hero-val" style="font-size:22px">${fmtEUR(inv.balance)}</div>
-      <div class="row-detail" style="margin-top:4px">toca para ver o histórico de movimentos</div>
-    </div>`).join('');
+      ${refHtml || '<div class="row-detail" style="margin-top:4px">toca para ver o histórico de movimentos</div>'}
+      <button class="btn-secondary" onclick="event.stopPropagation();openInvestReinforce('${inv.id}')">🔁 Reforço mensal recorrente</button>
+    </div>`;
+  }).join('');
+}
+// abre o formulário de transferência recorrente já com este investimento como destino
+function openInvestReinforce(invId){
+  const inv = state.investments.find(i => i.id === invId);
+  openBillModal();
+  document.getElementById('bill-name').value = 'Reforço ' + inv.name;
+  document.getElementById('bill-kind').value = 'transfer';
+  onBillKindChange();
+  document.getElementById('bill-tr-to').value = 'inv:' + invId;
+  const def = state.accounts.find(a => a.type === 'À ordem');
+  if (def) document.getElementById('bill-tr-from').value = 'acc:' + def.id;
 }
 function openInvestDetail(id){
   const inv = state.investments.find(i=>i.id===id);
