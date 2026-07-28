@@ -383,9 +383,22 @@
       "toRef": "acc:1",
       "from": "2026-12",
       "to": "2026-12"
+    },
+    {
+      "id": 20,
+      "name": "Segurança Social MyHome",
+      "day": 20,
+      "category": "Utilidades",
+      "amount": 186.96,
+      "kind": "income",
+      "accountId": 6,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 20,
+  "nextBillId": 21,
   "creditCards": [
     {
       "id": 1,
