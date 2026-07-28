@@ -323,10 +323,12 @@
       "day": 1,
       "category": "Alimentação",
       "amount": 187,
-      "kind": "expense",
+      "kind": "income",
       "accountId": 1,
       "from": null,
-      "to": null
+      "to": null,
+      "fromRef": "acc:1",
+      "toRef": "acc:1"
     },
     {
       "id": 13,
