@@ -396,7 +396,7 @@
       "name": "Despesas Mensais",
       "day": 15,
       "category": "Utilidades",
-      "amount": 300,
+      "amount": 200,
       "kind": "expense",
       "accountId": 3,
       "fromRef": "acc:1",
