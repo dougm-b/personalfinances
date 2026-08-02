@@ -1,8 +1,10 @@
 // mês de vencimento da fatura de avulsos: o mês seguinte à última COMPRA avulsa
 function cardBillMonth(c){
-  const buys = (c.history||[]).filter(h => h.amount > 0);
-  const baseM = buys.length ? monthKey(buys[buys.length-1].date) : todayKey().slice(0,7);
-  return nextMonth(baseM);
+  // a fatura vence no próximo dia de débito: este mês se o dia ainda não
+  // passou, senão no mês seguinte
+  const cur = todayKey().slice(0,7);
+  const today = parseInt(todayKey().slice(8,10), 10);
+  return today <= (c.dueDay || 1) ? cur : nextMonth(cur);
 }
 // valor da fatura de avulsos num dado mês, considerando a parte rolada
 function cardBillFor(c, M){
