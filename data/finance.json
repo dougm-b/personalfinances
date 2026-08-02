@@ -615,7 +615,8 @@
           "from": "2026-03",
           "to": "2026-12",
           "chargedUntil": "2026-08",
-          "accountId": 1
+          "accountId": 1,
+          "day": 15
         },
         {
           "id": 3,
