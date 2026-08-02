@@ -53,7 +53,7 @@ function runLoanPlanCharges(){
       if (p.from <= m && m <= p.to && !settlementOf('plan:'+p.id, m)) {
         const t = { id: state.nextTxId++,
           desc: 'Pagamento empréstimo ' + loan.credor + ' (' + fmtMonth(m) + ')',
-          kind:'expense', amount:-Math.abs(p.amount), date: m + '-01',
+          kind:'expense', amount:-Math.abs(p.amount), date: m + '-' + String(p.day||1).padStart(2,'0'),
           category:'Casa', accountId: p.accountId, applied:true, ts: Date.now() };
         state.transactions.push(t);
         applyTxBalance(t, 1);
@@ -128,10 +128,12 @@ function openPlanModal(id){
     document.getElementById('plan-amount').value = p0.amount;
     document.getElementById('plan-from').value = p0.from;
     document.getElementById('plan-to').value = p0.to;
+    document.getElementById('plan-day').value = p0.day || 1;
   } else {
     document.getElementById('plan-amount').value = '';
     document.getElementById('plan-from').value = todayKey().slice(0,7);
     document.getElementById('plan-to').value = '';
+    document.getElementById('plan-day').value = 1;
   }
   document.getElementById('plan-modal').classList.add('open');
 }
@@ -142,13 +144,14 @@ function savePlan(){
   const from = document.getElementById('plan-from').value;
   const to = document.getElementById('plan-to').value;
   const accountId = parseInt(document.getElementById('plan-account').value)||null;
+  const day = Math.min(31, Math.max(1, parseInt(document.getElementById('plan-day').value)||1));
   if (!amount || !from || !to) { showToast('Preenche valor e período'); return; }
   if (to < from) { showToast('O mês final tem de ser depois do inicial'); return; }
   loan.paymentPlans = loan.paymentPlans || [];
-  if (id) { Object.assign(loan.paymentPlans.find(p=>p.id==id), { amount, from, to, accountId }); }
+  if (id) { Object.assign(loan.paymentPlans.find(p=>p.id==id), { amount, from, to, accountId, day }); }
   else {
     loan.nextPlanId = loan.nextPlanId || 1;
-    loan.paymentPlans.push({ id: loan.nextPlanId++, amount, from, to, accountId, chargedUntil: todayKey().slice(0,7) });
+    loan.paymentPlans.push({ id: loan.nextPlanId++, amount, from, to, accountId, day, chargedUntil: todayKey().slice(0,7) });
   }
   closeModal('plan-modal'); save(); showToast('✅ Débito mensal guardado');
 }

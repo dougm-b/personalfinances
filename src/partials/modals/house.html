@@ -26,7 +26,10 @@
       <div class="form-group"><label class="form-label">De (mês)</label><input class="form-input" id="plan-from" type="month"/></div>
       <div class="form-group"><label class="form-label">Até (mês)</label><input class="form-input" id="plan-to" type="month"/></div>
     </div>
-    <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="plan-account"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Dia de débito</label><input class="form-input" id="plan-day" type="number" min="1" max="31" placeholder="1-31"/></div>
+      <div class="form-group"><label class="form-label">Conta a debitar</label><select class="form-select" id="plan-account"></select></div>
+    </div>
     <div class="note-box">Em cada mês do período, é criada automaticamente a transação do pagamento e o valor é debitado desta conta.</div>
     <button class="btn-danger" id="plan-delete-btn" onclick="deletePlan()" style="display:none">Eliminar</button>
   </div>

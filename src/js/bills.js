@@ -64,7 +64,7 @@ function fixasItemsForMonth(M){
   // débitos mensais do empréstimo da casa aparecem como despesa fixa no período
   ((state.house.loan||{}).paymentPlans||[]).forEach(p => {
     if (p.from <= M && M <= p.to)
-      items.push({ key:'plan:'+p.id, name:'Empréstimo ' + state.house.loan.credor, day: 1, amount: p.amount,
+      items.push({ key:'plan:'+p.id, name:'Empréstimo ' + state.house.loan.credor, day: p.day||1, amount: p.amount,
         kind:'expense', category:'Casa', accountId: p.accountId||null, plan:p });
   });
   return items.sort((a,b) => a.day - b.day);
