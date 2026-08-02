@@ -383,7 +383,7 @@
       "name": "Transf. Despesas Mensais",
       "day": 8,
       "category": "Utilidades",
-      "amount": 300,
+      "amount": 200,
       "kind": "transfer",
       "accountId": 1,
       "fromRef": "acc:1",
