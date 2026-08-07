@@ -461,7 +461,7 @@
       "id": 2,
       "name": "Millennium bcp",
       "limit": 4000,
-      "used": -474.83,
+      "used": -530.22,
       "monthlyDue": 0,
       "financedItems": [
         {
@@ -524,9 +524,14 @@
           "date": "2026-08-07",
           "desc": "Ajuste de saldo disponível (pagamento avulso do ciclo)",
           "amount": -474.83
+        },
+        {
+          "date": "2026-08-07",
+          "desc": "Ajuste de saldo disponível (pagamento avulso do ciclo)",
+          "amount": -55.39
         }
       ],
-      "professional": true
+      "professional": false
     },
     {
       "id": 3,
