@@ -311,10 +311,14 @@
       "id": 3,
       "name": "Eletricidade (Endesa)",
       "category": "Utilidades",
-      "amount": 151.03,
+      "amount": 187.22,
       "day": 15,
       "kind": "expense",
-      "accountId": 1
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     },
     {
       "id": 4,
