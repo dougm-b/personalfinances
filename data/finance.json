@@ -255,9 +255,20 @@
       "accountId": null,
       "applied": false,
       "ts": 1786114815796
+    },
+    {
+      "id": 26,
+      "desc": "Despesas Mensais",
+      "kind": "expense",
+      "amount": -200,
+      "date": "2026-08-15",
+      "category": "Utilidades",
+      "accountId": 3,
+      "applied": false,
+      "ts": 1786114818866
     }
   ],
-  "nextTxId": 26,
+  "nextTxId": 27,
   "recurringBills": [
     {
       "id": 1,
@@ -823,6 +834,10 @@
     "bill:16|2026-08": {
       "txId": 25,
       "when": 1786114815796
+    },
+    "bill:18|2026-08": {
+      "txId": 26,
+      "when": 1786114818866
     }
   },
   "settings": {
