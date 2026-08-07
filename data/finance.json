@@ -251,7 +251,7 @@
       "name": "Prestação  da Casa",
       "category": "Casa",
       "amount": 580.14,
-      "day": 8,
+      "day": 1,
       "kind": "expense",
       "accountId": 1,
       "fromRef": "acc:1",
