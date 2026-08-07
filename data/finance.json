@@ -220,9 +220,20 @@
       "accountId": 1,
       "applied": false,
       "ts": 1785276362598
+    },
+    {
+      "id": 23,
+      "desc": "CC Prest Revolut 1000 (Millennium bcp)",
+      "kind": "expense",
+      "amount": -333.35,
+      "date": "2026-08-11",
+      "category": "Cartão de Crédito",
+      "accountId": null,
+      "applied": false,
+      "ts": 1786114752508
     }
   ],
-  "nextTxId": 23,
+  "nextTxId": 24,
   "recurringBills": [
     {
       "id": 1,
@@ -776,6 +787,10 @@
     "bill:2|2026-07": {
       "txId": 21,
       "when": 1785276362598
+    },
+    "fin:2:2|2026-08": {
+      "txId": 23,
+      "when": 1786114752508
     }
   },
   "settings": {
