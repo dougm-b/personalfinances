@@ -266,9 +266,20 @@
       "accountId": 3,
       "applied": false,
       "ts": 1786114818866
+    },
+    {
+      "id": 27,
+      "desc": "Empréstimo Deny e Mauricio",
+      "kind": "expense",
+      "amount": -600,
+      "date": "2026-08-15",
+      "category": "Casa",
+      "accountId": 1,
+      "applied": false,
+      "ts": 1786114829866
     }
   ],
-  "nextTxId": 27,
+  "nextTxId": 28,
   "recurringBills": [
     {
       "id": 1,
@@ -838,6 +849,10 @@
     "bill:18|2026-08": {
       "txId": 26,
       "when": 1786114818866
+    },
+    "plan:2|2026-08": {
+      "txId": 27,
+      "when": 1786114829866
     }
   },
   "settings": {
