@@ -242,9 +242,22 @@
       "accountId": null,
       "applied": false,
       "ts": 1786114753141
+    },
+    {
+      "id": 25,
+      "desc": "Transf. Despesas Mensais",
+      "kind": "transfer",
+      "amount": 200,
+      "fromRef": "acc:1",
+      "toRef": "acc:3",
+      "date": "2026-08-08",
+      "category": null,
+      "accountId": null,
+      "applied": false,
+      "ts": 1786114815796
     }
   ],
-  "nextTxId": 25,
+  "nextTxId": 26,
   "recurringBills": [
     {
       "id": 1,
@@ -806,6 +819,10 @@
     "fin:2:3|2026-08": {
       "txId": 24,
       "when": 1786114753141
+    },
+    "bill:16|2026-08": {
+      "txId": 25,
+      "when": 1786114815796
     }
   },
   "settings": {
