@@ -517,9 +517,22 @@
       "toRef": "acc:1",
       "from": "2026-09",
       "to": "2026-09"
+    },
+    {
+      "id": 23,
+      "name": "Renda quarto Kelvim",
+      "day": 5,
+      "category": "Utilidades",
+      "amount": 320,
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 23,
+  "nextBillId": 24,
   "creditCards": [
     {
       "id": 1,
