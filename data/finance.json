@@ -289,17 +289,6 @@
       "accountId": 1,
       "applied": true,
       "ts": 1788314027301
-    },
-    {
-      "id": 29,
-      "desc": "Pagamento empréstimo Deny e Mauricio (Out 2026)",
-      "kind": "expense",
-      "amount": -600,
-      "date": "2026-10-15",
-      "category": "Casa",
-      "accountId": 1,
-      "applied": true,
-      "ts": 1790851650413
     }
   ],
   "nextTxId": 30,
@@ -884,10 +873,6 @@
     "plan:2|2026-09": {
       "txId": 28,
       "when": 1788314027301
-    },
-    "plan:2|2026-10": {
-      "txId": 29,
-      "when": 1790851650413
     }
   },
   "settings": {
