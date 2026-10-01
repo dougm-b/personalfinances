@@ -545,6 +545,14 @@
           "installment": 183.34,
           "startMonth": "2026-07",
           "months": 6
+        },
+        {
+          "id": 4,
+          "desc": "Revolut 1800",
+          "total": 1800,
+          "installment": 300,
+          "startMonth": "2026-11",
+          "months": 6
         }
       ],
       "dueDay": 11,
@@ -608,7 +616,7 @@
     }
   ],
   "nextCardId": 4,
-  "nextFinancedId": 4,
+  "nextFinancedId": 5,
   "plannedTx": [],
   "nextPlannedId": 1,
   "investments": [
