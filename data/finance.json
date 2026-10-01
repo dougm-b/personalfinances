@@ -541,8 +541,8 @@
       "accountId": 1,
       "fromRef": "acc:1",
       "toRef": "acc:1",
-      "from": null,
-      "to": null
+      "from": "2026-11",
+      "to": "2026-11"
     }
   ],
   "nextBillId": 25,
