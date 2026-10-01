@@ -538,15 +538,6 @@
       "monthlyDue": 0,
       "financedItems": [
         {
-          "id": 2,
-          "desc": "CC Prest Revolut 1000",
-          "total": 1004.23,
-          "remaining": 0,
-          "installment": 333.35,
-          "startMonth": "2026-07",
-          "months": 3
-        },
-        {
           "id": 3,
           "desc": "CC Prest Revolut 1100",
           "total": 1109.3,
