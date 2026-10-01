@@ -11,7 +11,8 @@
       "id": 2,
       "name": "ActivoBank",
       "type": "À ordem",
-      "balance": 4.14
+      "balance": 0,
+      "updatedAt": 1790852074927
     },
     {
       "id": 3,
