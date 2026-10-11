@@ -545,9 +545,22 @@
       "toRef": "acc:1",
       "from": "2026-11",
       "to": "2026-11"
+    },
+    {
+      "id": 25,
+      "name": "Medis",
+      "day": 15,
+      "category": "Utilidades",
+      "amount": 39.84,
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": null,
+      "to": null
     }
   ],
-  "nextBillId": 25,
+  "nextBillId": 26,
   "creditCards": [
     {
       "id": 1,
