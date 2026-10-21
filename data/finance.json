@@ -687,7 +687,7 @@
     {
       "id": "trading",
       "name": "Trading (Ações/ETFs)",
-      "balance": 3440.77,
+      "balance": 3687.35,
       "contributions": [
         {
           "date": "2026-07-19",
@@ -712,6 +712,11 @@
         {
           "date": "2026-10-01",
           "amount": 413.96,
+          "note": "correção manual de valor"
+        },
+        {
+          "date": "2026-10-21",
+          "amount": 246.58,
           "note": "correção manual de valor"
         }
       ]
