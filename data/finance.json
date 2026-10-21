@@ -571,9 +571,22 @@
       "toRef": "acc:1",
       "from": "2026-11",
       "to": "2026-11"
+    },
+    {
+      "id": 27,
+      "name": "Reforço Trading (Ações/ETFs)",
+      "day": 15,
+      "category": "Utilidades",
+      "amount": 300,
+      "kind": "transfer",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "inv:trading",
+      "from": "2026-11",
+      "to": "2027-12"
     }
   ],
-  "nextBillId": 27,
+  "nextBillId": 28,
   "creditCards": [
     {
       "id": 1,
