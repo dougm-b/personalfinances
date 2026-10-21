@@ -371,7 +371,7 @@
       "id": 9,
       "name": "MyHome",
       "category": "Casa",
-      "amount": 700,
+      "amount": 800,
       "day": 15,
       "kind": "income",
       "accountId": 1,
