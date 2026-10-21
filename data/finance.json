@@ -558,9 +558,22 @@
       "toRef": "acc:1",
       "from": null,
       "to": null
+    },
+    {
+      "id": 26,
+      "name": "Despesa Viagem",
+      "day": 10,
+      "category": "Utilidades",
+      "amount": 300,
+      "kind": "expense",
+      "accountId": 1,
+      "fromRef": "acc:1",
+      "toRef": "acc:1",
+      "from": "2026-11",
+      "to": "2026-11"
     }
   ],
-  "nextBillId": 26,
+  "nextBillId": 27,
   "creditCards": [
     {
       "id": 1,
