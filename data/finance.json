@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Millennium bcp",
       "type": "À ordem",
-      "balance": 266.94,
+      "balance": -333.06,
       "updatedAt": 1790854539576
     },
     {
@@ -289,9 +289,20 @@
       "accountId": 1,
       "applied": true,
       "ts": 1788314027301
+    },
+    {
+      "id": 30,
+      "desc": "Pagamento empréstimo Deny e Mauricio (Nov 2026)",
+      "kind": "expense",
+      "amount": -600,
+      "date": "2026-11-15",
+      "category": "Casa",
+      "accountId": 1,
+      "applied": true,
+      "ts": 1795620174181
     }
   ],
-  "nextTxId": 30,
+  "nextTxId": 31,
   "recurringBills": [
     {
       "id": 1,
@@ -781,14 +792,14 @@
           "amount": 300,
           "from": "2025-03",
           "to": "2026-02",
-          "chargedUntil": "2026-10"
+          "chargedUntil": "2026-11"
         },
         {
           "id": 2,
           "amount": 600,
           "from": "2026-03",
           "to": "2026-12",
-          "chargedUntil": "2026-10",
+          "chargedUntil": "2026-11",
           "accountId": 1,
           "day": 15
         },
@@ -798,7 +809,7 @@
           "from": "2026-12",
           "to": "2026-12",
           "accountId": 1,
-          "chargedUntil": "2026-10"
+          "chargedUntil": "2026-11"
         },
         {
           "id": 4,
@@ -806,7 +817,7 @@
           "from": "2027-01",
           "to": "2029-09",
           "accountId": 1,
-          "chargedUntil": "2026-10"
+          "chargedUntil": "2026-11"
         }
       ],
       "nextPlanId": 5,
@@ -959,6 +970,10 @@
     "plan:2|2026-09": {
       "txId": 28,
       "when": 1788314027301
+    },
+    "plan:2|2026-11": {
+      "txId": 30,
+      "when": 1795620174181
     }
   },
   "settings": {
